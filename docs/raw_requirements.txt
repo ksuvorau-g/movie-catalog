@@ -1,0 +1,198 @@
+MOVIE CATALOG - RAW REQUIREMENTS
+=================================
+
+PROJECT OVERVIEW
+-----------------
+A REST API service for managing a personal movie and TV series catalog. The system allows users to track movies they want to watch, mark them as watched or unwatched, get recommendations for what to watch next, and track TV series progress with automatic notifications for new season releases.
+
+
+CORE FEATURES
+-------------
+
+1. ADD NEW MOVIE
+   - Users can add a new movie to their catalog
+   - Each movie entry must include:
+     * Title
+     * Link (URL where the movie can be accessed)
+     * Link description (e.g., streaming platform, source information)
+     * Text comment (personal notes or review)
+     * Cover image link (URL to movie poster/thumbnail)
+     * Length (duration of the movie)
+     * Genre
+   
+2. MARK MOVIE AS WATCHED/UNWATCHED
+   - Users can mark any movie in their catalog as "watched"
+   - Users can change the status back to "unwatched" if needed
+   - The system should track the current watch status of each movie
+
+3. GET MOVIE RECOMMENDATION
+   - Users can request a recommendation for the next movie to watch
+   - Recommendation logic:
+     * Both movies and TV series are included in recommendations
+     * For movies: Only unwatched movies are considered
+     * For series: Only series with unwatched seasons are considered
+     * Probability is weighted by how long ago the movie/series was added (older items have higher probability)
+     * Special case for series: If all previously available seasons were watched and new season(s) were added, series gets very high probability to appear on top
+     * Random selection applied with the age-based weighting (except for series with new seasons which have priority)
+     * Example: A movie/series added a year ago has higher chance than one added yesterday
+     * Example priority: Series with new seasons > Old unwatched items > Recently added unwatched items
+
+4. RETRIEVE FULL CATALOG LIST
+   - Users can get a complete list of all movies and TV series in their catalog
+   - List capabilities:
+     * Filtering: Support filtering by:
+       - Genre, watch status, added by (person name)
+       - Content type (movies only, series only, or both)
+       - Series-specific: series with new unwatched seasons, complete vs. ongoing series
+     * Sorting: Support sorting by title, length (for movies), date added
+     * Pagination: Optional feature that can be implemented if needed for large catalogs
+
+5. ADD NEW TV SERIES
+   - Users can add a TV series to their catalog
+   - Each series entry must include at least a title
+   - Series can include the same optional fields as movies (link, description, comment, cover image, genre, added by)
+   - Series have additional tracking for season progress
+
+6. MARK SERIES SEASON AS WATCHED/UNWATCHED
+   - Users can mark individual seasons as watched or unwatched
+   - Users can mark an entire series as watched (all seasons marked as watched)
+   - Users can mark an entire series as unwatched (all seasons marked as unwatched)
+   - Series watch status is automatically determined:
+     * Series is "watched" if all available seasons are marked as watched
+     * Series is "unwatched" if any season is marked as unwatched
+   - Users can skip seasons (e.g., mark Season 3 as watched without watching Season 2)
+   - No episode-level tracking - seasons are marked manually as a whole
+
+7. AUTOMATIC SEASON REFRESH AND NOTIFICATIONS
+   - System periodically checks for new seasons (e.g., weekly)
+   - System fetches latest season information from external sources (link description URLs)
+   - Notifications are displayed when new seasons are detected for series where at least one season has been watched
+   - Notifications persist until manually dismissed by the user
+   - Notifications inform user which series has new seasons available
+   - If external source is unavailable:
+     * System retries in one hour
+     * User can manually trigger a refresh check
+   - If series has no link description URL, season checking is disabled for that series
+
+
+DATA ATTRIBUTES
+---------------
+
+MOVIES:
+Each movie in the catalog contains:
+- Title: Name of the movie [REQUIRED]
+- Link: URL where the movie can be accessed/watched [OPTIONAL]
+- Link Description: URL to movie information page (IMDB, Kinopoisk, etc.) [OPTIONAL]
+  * Additional movie information can be fetched from this link in future enhancements
+- Comment: User's personal notes, thoughts, or review [OPTIONAL]
+- Cover Image: URL to the movie poster or thumbnail image [OPTIONAL]
+- Length: Duration of the movie (in minutes) [OPTIONAL]
+- Genre: Movie categories/types - can have multiple genres, free text [OPTIONAL]
+- Watch Status: Tracked automatically (watched/unwatched)
+- Added By: Name of the person who added this movie to the catalog [OPTIONAL]
+- Date Added: Automatically tracked when movie is added to the catalog
+
+TV SERIES:
+Each TV series in the catalog contains:
+- Title: Name of the series [REQUIRED]
+- Link: URL where the series can be accessed/watched [OPTIONAL]
+- Link Description: URL to series information page (IMDB, Kinopoisk, etc.) [OPTIONAL]
+  * Required for automatic season refresh functionality
+  * Used for automatic refresh of season information
+- Comment: User's personal notes, thoughts, or review [OPTIONAL]
+- Cover Image: URL to the series poster or thumbnail image [OPTIONAL]
+- Genre: Series categories/types - can have multiple genres, free text [OPTIONAL]
+- Seasons: Collection of seasons with watch status for each
+  * Season Number: Number identifier for the season
+  * Watch Status: Watched or unwatched for each season
+  * Can be marked individually or all at once
+- Series Watch Status: Automatically calculated (watched if all seasons watched, unwatched otherwise)
+- Total Available Seasons: Total number of seasons available (fetched from external source) [AUTOMATIC]
+- Has New Seasons: Flag indicating if new unwatched seasons are available [AUTOMATIC]
+- Series Status: Complete or ongoing (fetched from external source) [AUTOMATIC]
+- Added By: Name of the person who added this series to the catalog [OPTIONAL]
+- Date Added: Automatically tracked when series is added to the catalog
+- Last Season Check: Date when system last checked for new seasons [AUTOMATIC]
+
+
+USER CONTEXT
+------------
+- Single-user system (personal movie catalog)
+- No authentication required
+- When adding a movie, user can optionally specify the name of the person who added it
+- Movies can be filtered by the "added by" field to see who contributed which movies
+
+
+DATA MANAGEMENT
+---------------
+- Duplicate Prevention: 
+  * System should allow adding movies/series with duplicate titles
+  * System should warn the user when adding a movie/series with an existing title
+  * Future enhancement: Ability to merge duplicate records
+
+- Edit Capability: Users can edit movie/series information after adding it
+
+- Delete Capability: Users can delete movies/series from the catalog
+
+- Search Functionality: Users can search for specific movies/series by title or other attributes
+
+- Notifications:
+  * System displays notifications when new seasons are detected for tracked series
+  * Notifications only shown for series where at least one season has been watched
+  * Notifications persist until manually dismissed by the user
+  * Notifications should indicate which series has new seasons and how many
+  * Users can dismiss individual notifications
+
+- External Source Refresh:
+  * Automatic periodic checks (e.g., weekly)
+  * Manual refresh option available for users
+  * Retry logic: If external source fails, retry in one hour
+  * Series without link description URL are excluded from automatic checks
+
+
+FUTURE ENHANCEMENTS
+-------------------
+- Fetch additional movie information automatically from link description URLs (IMDB, Kinopoisk)
+- Merge duplicate movie/series records
+- Implement pagination for large catalogs
+- Add movie/series rating functionality
+- Track date when movie was watched
+- Track individual episode progress within seasons
+- Customizable refresh frequency for season checks
+- Email or push notifications for new seasons (in addition to in-app notifications)
+
+
+SUMMARY OF KEY DECISIONS
+-------------------------
+✓ System supports both movies and TV series in a unified catalog
+✓ Only title is required for both movies and series; all other fields are optional
+✓ Movies can have multiple genres (free text); same for series
+✓ System allows duplicates but warns the user
+✓ Single-user system with optional "added by" field for tracking contributors
+✓ Recommendation includes both movies and series, based on weighted random selection favoring older unwatched items
+✓ For series recommendations: only series with unwatched seasons are included
+✓ Series with newly released seasons (where previous seasons were watched) get very high priority in recommendations
+✓ Full filtering and sorting capabilities for catalog list (movies and series combined)
+✓ Series-specific filters: new unwatched seasons, complete vs. ongoing status
+✓ Link description points to external sources (IMDB, Kinopoisk, etc.)
+✓ Series track season-by-season watch status (manual marking, no episode tracking)
+✓ Series can be marked individually by season or all at once
+✓ Users can skip seasons when marking as watched
+✓ Series watch status automatically calculated based on all seasons
+✓ System automatically checks for new seasons periodically (e.g., weekly)
+✓ Notifications persist until dismissed and only shown for series with at least one watched season
+✓ Failed external source checks retry in one hour; manual refresh available
+
+
+OPEN QUESTIONS FOR PRODUCT OWNER
+---------------------------------
+1. What should drive the movie recommendation logic?
+2. What filtering and sorting options are needed for the movie list?
+3. Should a movie support multiple genres or just one?
+4. Is this a single-user or multi-user system?
+5. Should the system prevent duplicate movie entries?
+6. Do we need edit and delete capabilities for movies?
+7. Which movie attributes are mandatory vs optional?
+8. Should there be search functionality to find specific movies?
+9. Are there any constraints on data formats (URL validation, length format, etc.)?
+10. Should the system track any additional information (date added, date watched, rating)?
