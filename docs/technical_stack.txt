@@ -1,0 +1,221 @@
+MOVIE CATALOG - TECHNICAL STACK
+================================
+
+CORE TECHNOLOGY STACK
+---------------------
+
+Programming Language:
+- Java 21 (LTS version with latest language features)
+
+Framework:
+- Spring Boot 3.x (latest stable version)
+  * Spring Boot provides auto-configuration, embedded server, and production-ready features
+
+Build Tool:
+- Maven (dependency management and build automation)
+
+Database:
+- MongoDB (NoSQL database for flexible schema and document storage)
+  * Suitable for movies/series catalog with varying attributes
+  * Easy to handle multiple genres, seasons collection, etc.
+
+Local Development:
+- Docker Compose (for containerized local development environment)
+  * MongoDB container
+  * Application container (optional)
+
+
+SPRING BOOT DEPENDENCIES
+-------------------------
+
+Core Dependencies:
+- spring-boot-starter-web
+  * RESTful API development
+  * Embedded Tomcat server
+
+- spring-boot-starter-data-mongodb
+  * MongoDB integration
+  * Repository pattern support
+  * Query methods
+
+- spring-boot-starter-actuator
+  * Health checks, metrics, monitoring endpoints
+  * Production-ready features
+
+- spring-boot-starter-webflux
+  * Required for WebClient (reactive HTTP client)
+
+- springdoc-openapi-starter-webmvc-ui
+  * OpenAPI 3.0 specification
+  * Swagger UI for API documentation and testing
+
+- lombok
+  * Reduces boilerplate code (getters, setters, constructors, builders)
+  * Annotation-based code generation
+
+
+EXTERNAL API INTEGRATION
+-------------------------
+
+HTTP Client:
+- WebClient (Spring WebFlux - reactive, non-blocking)
+  * Modern reactive HTTP client
+  * Non-blocking I/O for external API calls
+  * Better performance for multiple concurrent requests
+
+External Data Sources:
+- IMDB integration (via web scraping or unofficial APIs)
+- Kinopoisk integration (via web scraping or unofficial APIs)
+- Implementation details to be determined during development
+- May require specific parsing logic for each source
+
+
+SCHEDULING & BACKGROUND TASKS
+------------------------------
+
+- Spring @Scheduled annotation
+  * Simple, built-in scheduling capability
+  * Suitable for weekly season refresh checks
+  * Configured via @EnableScheduling in main application class
+  * Cron expressions for flexible scheduling (e.g., weekly checks)
+
+
+TESTING FRAMEWORK
+-----------------
+
+- JUnit 5 (Jupiter) - unit testing framework
+- Mockito - mocking framework for unit tests
+- Spring Boot Test - integration testing support
+- @SpringBootTest for full application context tests
+- @WebMvcTest for controller layer tests
+- Embedded MongoDB or TestContainers for repository integration tests
+
+
+LOGGING
+-------
+
+- Logback (default with Spring Boot)
+  * Fast, reliable logging framework
+  * Native implementation of SLF4J
+- SLF4J API (logging facade)
+- Configurable via logback-spring.xml or application.properties
+- Log levels: TRACE, DEBUG, INFO, WARN, ERROR
+- Console and file appenders as needed
+
+
+CODE QUALITY & UTILITIES
+-------------------------
+
+- Lombok
+  * Reduces boilerplate code for POJOs
+  * Annotations: @Data, @Builder, @AllArgsConstructor, @NoArgsConstructor, @Slf4j
+  * Requires IDE plugin for development
+  * Configured in Maven with annotation processor
+
+
+CONTAINERIZATION
+-----------------
+
+Docker:
+- Application Dockerfile with multi-stage build:
+  * Stage 1 (Build): eclipse-temurin:21-jdk-alpine or similar
+    - Compile and package application with Maven
+  * Stage 2 (Runtime): eclipse-temurin:21-jre-alpine or similar
+    - Run the compiled JAR with minimal footprint
+  * Optimized image size with multi-stage approach
+
+Docker Compose:
+- Services:
+  * MongoDB (database service)
+    - Image: mongo:latest (current stable version)
+    - Persistent volume for data
+    - Exposed port: 27017
+  * Application service
+    - Built from Dockerfile
+    - Depends on MongoDB service
+    - Exposed port: 8080 (or configured port)
+    - Environment variables for MongoDB connection
+  
+- Docker Compose features:
+  * Health checks for service dependencies
+  * Network configuration for service communication
+  * Volume mounts for data persistence
+
+
+CONFIGURATION MANAGEMENT
+-------------------------
+
+Application Configuration:
+- application.properties (single configuration file)
+- All properties in one file - no environment-specific profiles
+- Configuration includes:
+  * Server port
+  * MongoDB connection details (host, port, database name)
+  * Logging levels
+  * Actuator endpoints configuration
+  * Swagger/OpenAPI settings
+  * Scheduler cron expressions
+  * External API URLs and timeouts
+
+Property Examples:
+- server.port=8080
+- spring.data.mongodb.uri=mongodb://localhost:27017/moviecat
+- logging.level.root=INFO
+- spring.scheduler.cron.season-check=0 0 0 * * MON (weekly on Monday)
+
+Note: Sensitive data can be overridden via environment variables in Docker
+
+
+PROJECT STRUCTURE
+-----------------
+
+Maven Project Structure:
+src/
+├── main/
+│   ├── java/
+│   │   └── com/moviecat/
+│   │       ├── MovieCatalogApplication.java  # Main application class
+│   │       ├── controller/                    # REST controllers
+│   │       ├── service/                       # Business logic
+│   │       ├── repository/                    # MongoDB repositories
+│   │       ├── model/                         # Domain entities (@Document)
+│   │       ├── dto/                           # Data Transfer Objects
+│   │       ├── mapper/                        # Entity-DTO mappers
+│   │       ├── config/                        # Configuration classes
+│   │       ├── scheduler/                     # @Scheduled tasks
+│   │       └── exception/                     # Custom exceptions & handlers
+│   └── resources/
+│       ├── application.properties             # Application configuration
+│       └── logback-spring.xml                 # Logging configuration (optional)
+├── test/
+│   └── java/
+│       └── com/moviecat/                      # Test classes
+├── Dockerfile                                 # Multi-stage Docker build
+├── docker-compose.yml                         # Docker Compose configuration
+└── pom.xml                                    # Maven dependencies
+
+
+SUMMARY OF TECHNICAL DECISIONS
+-------------------------------
+✓ Java 21 with latest language features
+✓ Spring Boot 3.x (latest stable)
+✓ Maven for build management
+✓ MongoDB (latest version) for data storage
+✓ Spring Web for REST API
+✓ Spring Data MongoDB for database integration
+✓ Spring Boot Actuator for monitoring
+✓ WebClient for external API calls (reactive HTTP client)
+✓ Spring @Scheduled for background tasks
+✓ Swagger/OpenAPI for API documentation
+✓ Logback for logging
+✓ Lombok for reducing boilerplate code
+✓ JUnit 5 + Mockito for testing
+✓ Docker multi-stage build (JDK 21 for build, JRE 21 for runtime)
+✓ Docker Compose with MongoDB and application containers
+✓ Single application.properties file (no environment profiles)
+✓ Manual build and deployment (no CI/CD initially)
+
+
+OPEN TECHNICAL QUESTIONS
+-------------------------
+All technical decisions have been finalized. No open questions remaining.

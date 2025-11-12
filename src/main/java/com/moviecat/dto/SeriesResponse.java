@@ -1,0 +1,39 @@
+package com.moviecat.dto;
+
+import com.moviecat.model.Season;
+import com.moviecat.model.SeriesStatus;
+import com.moviecat.model.WatchStatus;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+/**
+ * Response DTO for TV series details.
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class SeriesResponse {
+    
+    private String id;
+    private String title;
+    private String link;
+    private String linkDescription;
+    private String comment;
+    private String coverImage;
+    private List<String> genres;
+    private List<Season> seasons;
+    private WatchStatus seriesWatchStatus;
+    private Integer totalAvailableSeasons;
+    private Boolean hasNewSeasons;
+    private SeriesStatus seriesStatus;
+    private String addedBy;
+    private LocalDateTime dateAdded;
+    private LocalDateTime lastSeasonCheck;
+    private Integer priority;
+}

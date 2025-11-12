@@ -1,0 +1,41 @@
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: moviecat-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=moviecat
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - moviecat-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moviecat-app
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/moviecat
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - moviecat-network
+
+networks:
+  moviecat-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:

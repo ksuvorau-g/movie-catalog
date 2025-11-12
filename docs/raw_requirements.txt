@@ -25,6 +25,12 @@ CORE FEATURES
    - Users can change the status back to "unwatched" if needed
    - The system should track the current watch status of each movie
 
+2a. SET MOVIE/SERIES PRIORITY
+   - Users can manually increase or decrease priority for any movie or series
+   - Priority is a numeric value (higher = more likely to be recommended)
+   - Default priority is 0
+   - Priority can be adjusted through API to boost specific content in recommendations
+
 3. GET MOVIE RECOMMENDATION
    - Users can request a recommendation for the next movie to watch
    - Recommendation logic:
@@ -32,10 +38,11 @@ CORE FEATURES
      * For movies: Only unwatched movies are considered
      * For series: Only series with unwatched seasons are considered
      * Probability is weighted by how long ago the movie/series was added (older items have higher probability)
+     * Manual priority can be set through API to boost specific movies/series (higher priority = higher chance)
      * Special case for series: If all previously available seasons were watched and new season(s) were added, series gets very high probability to appear on top
      * Random selection applied with the age-based weighting (except for series with new seasons which have priority)
      * Example: A movie/series added a year ago has higher chance than one added yesterday
-     * Example priority: Series with new seasons > Old unwatched items > Recently added unwatched items
+     * Example priority: High manual priority > Series with new seasons > Old unwatched items > Recently added unwatched items
 
 4. RETRIEVE FULL CATALOG LIST
    - Users can get a complete list of all movies and TV series in their catalog
@@ -91,6 +98,7 @@ Each movie in the catalog contains:
 - Watch Status: Tracked automatically (watched/unwatched)
 - Added By: Name of the person who added this movie to the catalog [OPTIONAL]
 - Date Added: Automatically tracked when movie is added to the catalog
+- Priority: Numeric value for manual recommendation priority adjustment [OPTIONAL, default: 0]
 
 TV SERIES:
 Each TV series in the catalog contains:
@@ -113,6 +121,7 @@ Each TV series in the catalog contains:
 - Added By: Name of the person who added this series to the catalog [OPTIONAL]
 - Date Added: Automatically tracked when series is added to the catalog
 - Last Season Check: Date when system last checked for new seasons [AUTOMATIC]
+- Priority: Numeric value for manual recommendation priority adjustment [OPTIONAL, default: 0]
 
 
 USER CONTEXT
@@ -170,6 +179,7 @@ SUMMARY OF KEY DECISIONS
 ✓ System allows duplicates but warns the user
 ✓ Single-user system with optional "added by" field for tracking contributors
 ✓ Recommendation includes both movies and series, based on weighted random selection favoring older unwatched items
+✓ Manual priority can be set for movies/series to influence recommendation probability
 ✓ For series recommendations: only series with unwatched seasons are included
 ✓ Series with newly released seasons (where previous seasons were watched) get very high priority in recommendations
 ✓ Full filtering and sorting capabilities for catalog list (movies and series combined)
