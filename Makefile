@@ -23,6 +23,18 @@ run: ## Run backend and frontend in Docker Compose (foreground)
 	@echo ""
 	$(DOCKER_COMPOSE) up --build
 
+run-bg: ## Run backend and frontend in Docker Compose (foreground)
+	@echo "Starting backend and frontend in Docker Compose..."
+	@echo ""
+	@echo "MongoDB: http://localhost:27017"
+	@echo "Backend API: http://localhost:8080"
+	@echo "Frontend: http://localhost:3000"
+	@echo "Swagger UI: http://localhost:8080/swagger-ui.html"
+	@echo ""
+	@echo "Press Ctrl+C to stop all services"
+	@echo ""
+	$(DOCKER_COMPOSE) up -d --build
+
 serve: _stop _build-backend ## Stop containers, run backend in Docker, frontend with hot reload
 	@echo "Starting backend in Docker Compose..."
 	$(DOCKER_COMPOSE) up -d mongodb app

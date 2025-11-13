@@ -123,8 +123,11 @@ public class CatalogService {
             }
             comparator = comparator.thenComparing(secondarySort);
         } else {
-            // Default secondary sort by date added (newest first) if no sortBy specified
-            comparator = comparator.thenComparing(Comparator.comparing(CatalogItemResponse::getDateAdded).reversed());
+            // Default sort: unwatched first, then by priority (higher first), then by date added (older first)
+            comparator = comparator
+                    .thenComparing(Comparator.comparing(CatalogItemResponse::getPriority, 
+                            Comparator.nullsLast(Comparator.reverseOrder())))
+                    .thenComparing(Comparator.comparing(CatalogItemResponse::getDateAdded));
         }
         
         catalogItems.sort(comparator);
@@ -165,9 +168,11 @@ public class CatalogService {
                 .map(this::seriesToResponse)
                 .collect(Collectors.toList()));
         
-        // Sort results: unwatched items first, then by date added
+        // Sort results: unwatched items first, then by priority (higher first), then by date added (older first)
         Comparator<CatalogItemResponse> comparator = createWatchStatusComparator()
-                .thenComparing(Comparator.comparing(CatalogItemResponse::getDateAdded).reversed());
+                .thenComparing(Comparator.comparing(CatalogItemResponse::getPriority, 
+                        Comparator.nullsLast(Comparator.reverseOrder())))
+                .thenComparing(Comparator.comparing(CatalogItemResponse::getDateAdded));
         results.sort(comparator);
         
         log.info("Found {} matching items", results.size());

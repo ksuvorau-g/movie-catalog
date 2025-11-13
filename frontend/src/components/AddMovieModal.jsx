@@ -5,12 +5,14 @@ const API_BASE_URL = '/api';
 
 function AddMovieModal({ isOpen, onClose, onSave }) {
   const [formData, setFormData] = useState({
+    contentType: 'MOVIE',
     title: '',
     coverImage: '',
     link: '',
     comment: '',
     addedBy: '',
-    genres: ''
+    genres: '',
+    numberOfSeasons: ''
   });
   
   const [errors, setErrors] = useState({});
@@ -82,6 +84,12 @@ function AddMovieModal({ isOpen, onClose, onSave }) {
       newErrors.title = 'Title is required';
     }
     
+    if (formData.contentType === 'SERIES') {
+      if (!formData.numberOfSeasons || formData.numberOfSeasons <= 0) {
+        newErrors.numberOfSeasons = 'Number of seasons must be at least 1';
+      }
+    }
+    
     return newErrors;
   };
 
@@ -100,7 +108,7 @@ function AddMovieModal({ isOpen, onClose, onSave }) {
       .map(g => g.trim())
       .filter(g => g);
 
-    const movieData = {
+    const baseData = {
       title: formData.title.trim(),
       coverImage: imageId || null, // Use image ID instead of URL
       link: formData.link.trim() || null,
@@ -111,21 +119,46 @@ function AddMovieModal({ isOpen, onClose, onSave }) {
     };
 
     try {
-      await onSave(movieData);
+      if (formData.contentType === 'MOVIE') {
+        await axios.post(`${API_BASE_URL}/movies`, baseData);
+      } else {
+        // For series, create seasons array with all unwatched
+        const seasons = [];
+        const numSeasons = parseInt(formData.numberOfSeasons);
+        for (let i = 1; i <= numSeasons; i++) {
+          seasons.push({
+            seasonNumber: i,
+            watchStatus: 'UNWATCHED'
+          });
+        }
+        
+        const seriesData = {
+          ...baseData,
+          seasons: seasons,
+          seriesStatus: 'ONGOING' // default status
+        };
+        
+        await axios.post(`${API_BASE_URL}/series`, seriesData);
+      }
+      
       handleClose();
+      onSave(); // Notify parent to refresh the catalog
     } catch (error) {
-      setErrors({ submit: 'Failed to save movie. Please try again.' });
+      console.error('Error saving:', error);
+      setErrors({ submit: `Failed to save ${formData.contentType.toLowerCase()}. Please try again.` });
     }
   };
 
   const handleClose = () => {
     setFormData({
+      contentType: 'MOVIE',
       title: '',
       coverImage: '',
       link: '',
       comment: '',
       addedBy: '',
-      genres: ''
+      genres: '',
+      numberOfSeasons: ''
     });
     setErrors({});
     setImagePreview(null);
@@ -140,11 +173,39 @@ function AddMovieModal({ isOpen, onClose, onSave }) {
     <div className="modal-overlay">
       <div className="modal-content">
         <div className="modal-header">
-          <h2>Add New Movie</h2>
+          <h2>Add New {formData.contentType === 'MOVIE' ? 'Movie' : 'Series'}</h2>
           <button className="modal-close-button" onClick={handleClose}>×</button>
         </div>
 
         <form onSubmit={handleSubmit} className="modal-form">
+          <div className="form-group">
+            <label htmlFor="contentType" className="form-label">
+              Content Type <span className="required">*</span>
+            </label>
+            <div className="content-type-selector">
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="contentType"
+                  value="MOVIE"
+                  checked={formData.contentType === 'MOVIE'}
+                  onChange={handleChange}
+                />
+                <span>Movie</span>
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="contentType"
+                  value="SERIES"
+                  checked={formData.contentType === 'SERIES'}
+                  onChange={handleChange}
+                />
+                <span>Series</span>
+              </label>
+            </div>
+          </div>
+
           <div className="form-group">
             <label htmlFor="title" className="form-label">
               Title <span className="required">*</span>
@@ -192,7 +253,7 @@ function AddMovieModal({ isOpen, onClose, onSave }) {
 
           <div className="form-group">
             <label htmlFor="link" className="form-label">
-              Movie Description URL
+              {formData.contentType === 'MOVIE' ? 'Movie' : 'Series'} Description URL
             </label>
             <input
               type="url"
@@ -201,9 +262,29 @@ function AddMovieModal({ isOpen, onClose, onSave }) {
               className="form-input"
               value={formData.link}
               onChange={handleChange}
-              placeholder="https://example.com/movie-page"
+              placeholder={`https://example.com/${formData.contentType === 'MOVIE' ? 'movie' : 'series'}-page`}
             />
           </div>
+
+          {formData.contentType === 'SERIES' && (
+            <div className="form-group">
+              <label htmlFor="numberOfSeasons" className="form-label">
+                Number of Seasons <span className="required">*</span>
+              </label>
+              <input
+                type="number"
+                id="numberOfSeasons"
+                name="numberOfSeasons"
+                className={`form-input ${errors.numberOfSeasons ? 'error' : ''}`}
+                value={formData.numberOfSeasons}
+                onChange={handleChange}
+                placeholder="e.g., 3"
+                min="1"
+              />
+              {errors.numberOfSeasons && <span className="error-message">{errors.numberOfSeasons}</span>}
+              <small className="form-help-text">All seasons will be set to UNWATCHED by default</small>
+            </div>
+          )}
 
           <div className="form-group">
             <label htmlFor="comment" className="form-label">
@@ -215,7 +296,7 @@ function AddMovieModal({ isOpen, onClose, onSave }) {
               className="form-textarea"
               value={formData.comment}
               onChange={handleChange}
-              placeholder="Add your thoughts about this movie..."
+              placeholder={`Add your thoughts about this ${formData.contentType === 'MOVIE' ? 'movie' : 'series'}...`}
               rows="3"
             />
           </div>
@@ -252,7 +333,11 @@ function AddMovieModal({ isOpen, onClose, onSave }) {
           </div>
 
           <div className="form-info">
-            <p>Watch Status will be set to: <strong>UNWATCHED</strong></p>
+            {formData.contentType === 'MOVIE' ? (
+              <p>Watch Status will be set to: <strong>UNWATCHED</strong></p>
+            ) : (
+              <p>All seasons will be set to: <strong>UNWATCHED</strong></p>
+            )}
             <p>Priority will be set to: <strong>0 (default)</strong></p>
           </div>
 
@@ -263,7 +348,7 @@ function AddMovieModal({ isOpen, onClose, onSave }) {
               Cancel
             </button>
             <button type="submit" className="button button-save">
-              Save Movie
+              Save {formData.contentType === 'MOVIE' ? 'Movie' : 'Series'}
             </button>
           </div>
         </form>

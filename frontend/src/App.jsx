@@ -164,15 +164,9 @@ function App() {
     }
   };
 
-  const handleAddMovie = async (movieData) => {
-    try {
-      await axios.post(`${API_BASE_URL}/movies`, movieData);
-      // Refresh the catalog after adding
-      await fetchCatalog();
-    } catch (err) {
-      console.error('Error adding movie:', err);
-      throw err;
-    }
+  const handleAddMovie = () => {
+    // Refresh the catalog after adding a movie/series
+    fetchCatalog();
   };
 
   return (

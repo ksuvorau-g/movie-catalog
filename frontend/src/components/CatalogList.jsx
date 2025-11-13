@@ -1,9 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
 
 const API_BASE_URL = '/api';
 
 function CatalogList({ items, onDelete, onMarkAsWatched, onMarkAsUnwatched }) {
-  if (!items || items.length === 0) {
+  const [localItems, setLocalItems] = useState(items);
+
+  React.useEffect(() => {
+    setLocalItems(items);
+  }, [items]);
+
+  if (!localItems || localItems.length === 0) {
     return <div className="empty-state">No items in catalog</div>;
   }
 
@@ -21,6 +28,27 @@ function CatalogList({ items, onDelete, onMarkAsWatched, onMarkAsUnwatched }) {
     await onMarkAsUnwatched(id);
   };
 
+  const handlePriorityChange = async (id, contentType, currentPriority, delta) => {
+    const newPriority = Math.max(0, currentPriority + delta);
+    
+    try {
+      const endpoint = contentType === 'MOVIE' 
+        ? `${API_BASE_URL}/movies/${id}/priority`
+        : `${API_BASE_URL}/series/${id}/priority`;
+      
+      await axios.patch(endpoint, { priority: newPriority });
+      
+      // Update local state without full refresh
+      setLocalItems(prevItems => 
+        prevItems.map(item => 
+          item.id === id ? { ...item, priority: newPriority } : item
+        )
+      );
+    } catch (error) {
+      console.error('Failed to update priority:', error);
+    }
+  };
+
   // Helper function to determine if coverImage is a URL or an image ID
   const getCoverImageUrl = (coverImage) => {
     if (!coverImage) return null;
@@ -36,7 +64,7 @@ function CatalogList({ items, onDelete, onMarkAsWatched, onMarkAsUnwatched }) {
 
   return (
     <div className="catalog-list">
-      {items.map((item) => (
+      {localItems.map((item) => (
         <div key={item.id} className="catalog-item">
           <div className="catalog-item-actions">
             <button 
@@ -146,11 +174,29 @@ function CatalogList({ items, onDelete, onMarkAsWatched, onMarkAsUnwatched }) {
             )}
 
             {item.priority !== null && item.priority !== undefined && (
-              <div className="detail-row">
+              <div className="detail-row priority-row">
                 <span className="detail-label">Priority:</span>
-                <span className="detail-value priority">
-                  {'⭐'.repeat(item.priority)}
-                </span>
+                <div className="priority-controls">
+                  {item.priority > 0 && (
+                    <button 
+                      className="priority-button priority-decrease"
+                      onClick={() => handlePriorityChange(item.id, item.contentType, item.priority, -1)}
+                      title="Decrease priority"
+                    >
+                      −
+                    </button>
+                  )}
+                  <span className="detail-value priority">
+                    {item.priority === 0 ? '0' : '⭐'.repeat(item.priority)}
+                  </span>
+                  <button 
+                    className="priority-button priority-increase"
+                    onClick={() => handlePriorityChange(item.id, item.contentType, item.priority, 1)}
+                    title="Increase priority"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             )}
 
