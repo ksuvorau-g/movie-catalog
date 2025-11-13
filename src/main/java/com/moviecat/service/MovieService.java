@@ -42,7 +42,6 @@ public class MovieService {
         Movie movie = Movie.builder()
                 .title(request.getTitle())
                 .link(request.getLink())
-                .linkDescription(request.getLinkDescription())
                 .comment(request.getComment())
                 .coverImage(request.getCoverImage())
                 .length(request.getLength())
@@ -108,7 +107,6 @@ public class MovieService {
         // Update fields
         movie.setTitle(request.getTitle());
         movie.setLink(request.getLink());
-        movie.setLinkDescription(request.getLinkDescription());
         movie.setComment(request.getComment());
         movie.setCoverImage(request.getCoverImage());
         movie.setLength(request.getLength());
@@ -194,7 +192,6 @@ public class MovieService {
                 .id(movie.getId())
                 .title(movie.getTitle())
                 .link(movie.getLink())
-                .linkDescription(movie.getLinkDescription())
                 .comment(movie.getComment())
                 .coverImage(movie.getCoverImage())
                 .length(movie.getLength())

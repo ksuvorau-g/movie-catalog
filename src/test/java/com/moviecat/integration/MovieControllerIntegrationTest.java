@@ -53,7 +53,6 @@ class MovieControllerIntegrationTest {
         MovieRequest request = MovieRequest.builder()
                 .title("Inception")
                 .link("https://example.com/inception")
-                .linkDescription("IMDB")
                 .comment("Great movie about dreams")
                 .coverImage("https://example.com/inception.jpg")
                 .length(148)

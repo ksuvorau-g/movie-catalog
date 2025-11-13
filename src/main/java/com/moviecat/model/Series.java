@@ -41,12 +41,6 @@ public class Series {
     private String link;
     
     /**
-     * URL to series information page (IMDB, Kinopoisk, etc.) - optional.
-     * Used for automatic season refresh functionality.
-     */
-    private String linkDescription;
-    
-    /**
      * User's personal notes, thoughts, or review (optional).
      */
     private String comment;

@@ -44,7 +44,6 @@ public class SeriesService {
         Series series = Series.builder()
                 .title(request.getTitle())
                 .link(request.getLink())
-                .linkDescription(request.getLinkDescription())
                 .comment(request.getComment())
                 .coverImage(request.getCoverImage())
                 .genres(request.getGenres())
@@ -111,7 +110,6 @@ public class SeriesService {
         // Update fields
         series.setTitle(request.getTitle());
         series.setLink(request.getLink());
-        series.setLinkDescription(request.getLinkDescription());
         series.setComment(request.getComment());
         series.setCoverImage(request.getCoverImage());
         series.setGenres(request.getGenres());
@@ -245,8 +243,8 @@ public class SeriesService {
         Series series = seriesRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Series not found with id: " + id));
         
-        if (series.getLinkDescription() == null || series.getLinkDescription().isEmpty()) {
-            throw new RuntimeException("Series does not have a link description URL for season refresh");
+        if (series.getLink() == null || series.getLink().isEmpty()) {
+            throw new RuntimeException("Series does not have a link URL for season refresh");
         }
         
         // TODO: Implement actual external API call to fetch season information
@@ -269,7 +267,6 @@ public class SeriesService {
                 .id(series.getId())
                 .title(series.getTitle())
                 .link(series.getLink())
-                .linkDescription(series.getLinkDescription())
                 .comment(series.getComment())
                 .coverImage(series.getCoverImage())
                 .genres(series.getGenres())

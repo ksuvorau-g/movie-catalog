@@ -101,23 +101,33 @@ public class CatalogService {
             catalogItems.addAll(seriesStream.map(this::seriesToResponse).collect(Collectors.toList()));
         }
         
-        // Apply sorting
+        // Apply sorting - always prioritize unwatched items first
+        Comparator<CatalogItemResponse> comparator = createWatchStatusComparator();
+        
         if (sortBy != null && !sortBy.isEmpty()) {
+            Comparator<CatalogItemResponse> secondarySort;
             switch (sortBy.toLowerCase()) {
                 case "title":
-                    catalogItems.sort(Comparator.comparing(CatalogItemResponse::getTitle));
+                    secondarySort = Comparator.comparing(CatalogItemResponse::getTitle);
                     break;
                 case "dateadded":
-                    catalogItems.sort(Comparator.comparing(CatalogItemResponse::getDateAdded).reversed());
+                    secondarySort = Comparator.comparing(CatalogItemResponse::getDateAdded).reversed();
                     break;
                 case "length":
-                    catalogItems.sort(Comparator.comparing(item -> 
-                            item.getLength() != null ? item.getLength() : 0, Comparator.reverseOrder()));
+                    secondarySort = Comparator.comparing(item -> 
+                            item.getLength() != null ? item.getLength() : 0, Comparator.reverseOrder());
                     break;
                 default:
                     log.warn("Unknown sort field: {}", sortBy);
+                    secondarySort = Comparator.comparing(CatalogItemResponse::getDateAdded).reversed();
             }
+            comparator = comparator.thenComparing(secondarySort);
+        } else {
+            // Default secondary sort by date added (newest first) if no sortBy specified
+            comparator = comparator.thenComparing(Comparator.comparing(CatalogItemResponse::getDateAdded).reversed());
         }
+        
+        catalogItems.sort(comparator);
         
         log.info("Returning {} catalog items", catalogItems.size());
         return catalogItems;
@@ -155,8 +165,23 @@ public class CatalogService {
                 .map(this::seriesToResponse)
                 .collect(Collectors.toList()));
         
+        // Sort results: unwatched items first, then by date added
+        Comparator<CatalogItemResponse> comparator = createWatchStatusComparator()
+                .thenComparing(Comparator.comparing(CatalogItemResponse::getDateAdded).reversed());
+        results.sort(comparator);
+        
         log.info("Found {} matching items", results.size());
         return results;
+    }
+    
+    /**
+     * Create comparator that prioritizes unwatched items first.
+     */
+    private Comparator<CatalogItemResponse> createWatchStatusComparator() {
+        return Comparator.comparing((CatalogItemResponse item) -> {
+            // UNWATCHED = 0, WATCHED = 1, so unwatched items come first
+            return "UNWATCHED".equals(item.getWatchStatus()) ? 0 : 1;
+        });
     }
     
     /**
@@ -168,6 +193,7 @@ public class CatalogService {
                 .contentType(ContentType.MOVIE)
                 .title(movie.getTitle())
                 .coverImage(movie.getCoverImage())
+                .comment(movie.getComment())
                 .genres(movie.getGenres())
                 .watchStatus(movie.getWatchStatus().toString())
                 .addedBy(movie.getAddedBy())
@@ -186,6 +212,7 @@ public class CatalogService {
                 .contentType(ContentType.SERIES)
                 .title(series.getTitle())
                 .coverImage(series.getCoverImage())
+                .comment(series.getComment())
                 .genres(series.getGenres())
                 .watchStatus(series.getSeriesWatchStatus().toString())
                 .addedBy(series.getAddedBy())

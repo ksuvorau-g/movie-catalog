@@ -41,17 +41,12 @@ public class Movie {
     private String link;
     
     /**
-     * URL to movie information page (IMDB, Kinopoisk, etc.) - optional.
-     */
-    private String linkDescription;
-    
-    /**
      * User's personal notes, thoughts, or review (optional).
      */
     private String comment;
     
     /**
-     * URL to movie poster or thumbnail image (optional).
+     * ID reference to image in the images collection (optional).
      */
     private String coverImage;
     

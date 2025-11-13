@@ -19,7 +19,6 @@ public class RecommendationResponse {
     private ContentType contentType;
     private String title;
     private String link;
-    private String linkDescription;
     private String coverImage;
     private String comment;
     private Integer priority;

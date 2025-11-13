@@ -22,6 +22,7 @@ public class CatalogItemResponse {
     private ContentType contentType;
     private String title;
     private String coverImage;
+    private String comment;
     private List<String> genres;
     private String watchStatus;
     private String addedBy;

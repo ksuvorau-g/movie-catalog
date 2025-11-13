@@ -1,43 +1,51 @@
 # Variables
 DOCKER_COMPOSE = docker compose
 
-.PHONY: help build run stop clean logs restart test
+.PHONY: help run serve test _stop _build-backend
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
 	@echo ''
-	@echo 'Available targets:'
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-15s %s\n", $$1, $$2}'
+	@echo 'Main targets:'
+	@echo '  run          Run backend and frontend in Docker Compose (foreground, Ctrl+C to stop)'
+	@echo '  serve        Run backend in Docker, frontend with hot reload'
+	@echo '  test         Run backend tests in Docker Compose'
 
-build: ## Build the Docker images
-	$(DOCKER_COMPOSE) build
-
-run: ## Start the application and MongoDB
-	$(DOCKER_COMPOSE) up -d
-	@echo "Application is starting..."
+run: ## Run backend and frontend in Docker Compose (foreground)
+	@echo "Starting backend and frontend in Docker Compose..."
+	@echo ""
 	@echo "MongoDB: http://localhost:27017"
-	@echo "API: http://localhost:8080"
+	@echo "Backend API: http://localhost:8080"
+	@echo "Frontend: http://localhost:3000"
 	@echo "Swagger UI: http://localhost:8080/swagger-ui.html"
+	@echo ""
+	@echo "Press Ctrl+C to stop all services"
+	@echo ""
+	$(DOCKER_COMPOSE) up --build
 
-stop: ## Stop the application and MongoDB
-	$(DOCKER_COMPOSE) down
+serve: _stop _build-backend ## Stop containers, run backend in Docker, frontend with hot reload
+	@echo "Starting backend in Docker Compose..."
+	$(DOCKER_COMPOSE) up -d mongodb app
+	@echo ""
+	@echo "✓ MongoDB started on localhost:27017"
+	@echo "✓ Backend API started on localhost:8080"
+	@echo ""
+	@echo "Starting frontend dev server with hot reload..."
+	@echo "Press Ctrl+C to stop frontend (backend will keep running)"
+	@echo ""
+	@cd frontend && npm install --silent && npm start
 
-clean: ## Stop and remove containers, networks, and volumes
-	$(DOCKER_COMPOSE) down -v
-	mvn clean
+test: ## Run backend tests in Docker Compose
+	@echo "Running backend tests in Docker Compose..."
+	$(DOCKER_COMPOSE) run --rm app mvn test
 
-logs: ## Show application logs
-	$(DOCKER_COMPOSE) logs -f app
+# Internal targets (not meant to be called directly)
+_stop:
+	@echo "Stopping all Docker containers..."
+	@$(DOCKER_COMPOSE) down 2>/dev/null || true
+	@-pkill -f "webpack serve" 2>/dev/null || true
+	@-pkill -f "webpack-dev-server" 2>/dev/null || true
 
-logs-mongo: ## Show MongoDB logs
-	$(DOCKER_COMPOSE) logs -f mongodb
-
-restart: stop run ## Restart the application
-
-test: ## Run tests
-	mvn test
-
-dev: ## Run MongoDB only (for local development)
-	$(DOCKER_COMPOSE) up -d mongodb
-	@echo "MongoDB started on localhost:27017"
-	@echo "Run your application locally with: mvn spring-boot:run"
+_build-backend:
+	@echo "Building backend if needed..."
+	$(DOCKER_COMPOSE) build app

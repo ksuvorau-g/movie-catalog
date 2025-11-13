@@ -14,7 +14,6 @@ CORE FEATURES
    - Each movie entry must include:
      * Title
      * Link (URL where the movie can be accessed)
-     * Link description (e.g., streaming platform, source information)
      * Text comment (personal notes or review)
      * Cover image link (URL to movie poster/thumbnail)
      * Length (duration of the movie)
@@ -51,7 +50,10 @@ CORE FEATURES
        - Genre, watch status, added by (person name)
        - Content type (movies only, series only, or both)
        - Series-specific: series with new unwatched seasons, complete vs. ongoing series
-     * Sorting: Support sorting by title, length (for movies), date added
+     * Sorting: 
+       - All unwatched movies and series ALWAYS appear first in the catalog, regardless of other sorting criteria
+       - Support sorting by title, length (for movies), date added (applied within unwatched/watched groups)
+       - Default sort: unwatched items first, then by date added (newest first)
      * Pagination: Optional feature that can be implemented if needed for large catalogs
 
 5. ADD NEW TV SERIES
@@ -183,6 +185,7 @@ SUMMARY OF KEY DECISIONS
 ✓ For series recommendations: only series with unwatched seasons are included
 ✓ Series with newly released seasons (where previous seasons were watched) get very high priority in recommendations
 ✓ Full filtering and sorting capabilities for catalog list (movies and series combined)
+✓ Catalog sorting: unwatched items always appear first, then sorted by specified criteria (title, date added, etc.)
 ✓ Series-specific filters: new unwatched seasons, complete vs. ongoing status
 ✓ Link description points to external sources (IMDB, Kinopoisk, etc.)
 ✓ Series track season-by-season watch status (manual marking, no episode tracking)

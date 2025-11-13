@@ -18,7 +18,6 @@ public class SeriesRequest {
     
     private String title;
     private String link;
-    private String linkDescription;
     private String comment;
     private String coverImage;
     private List<String> genres;

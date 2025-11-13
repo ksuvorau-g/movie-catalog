@@ -27,9 +27,23 @@ services:
     environment:
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/moviecat
       - SPRING_PROFILES_ACTIVE=docker
+    volumes:
+      - ./images:/app/images
     depends_on:
       mongodb:
         condition: service_healthy
+    networks:
+      - moviecat-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: moviecat-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - app
     networks:
       - moviecat-network
 
