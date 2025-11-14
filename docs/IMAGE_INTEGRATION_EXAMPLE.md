@@ -42,7 +42,6 @@ curl -X POST http://localhost:8080/api/movies \
   -d '{
     "title": "The Matrix",
     "link": "https://netflix.com/matrix",
-    "linkDescription": "https://www.imdb.com/title/tt0133093/",
     "comment": "Mind-bending sci-fi classic",
     "coverImage": "/api/images/67890abcdef1234567890abc",
     "length": 136,

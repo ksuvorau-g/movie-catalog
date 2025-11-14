@@ -61,6 +61,24 @@ CORE FEATURES
    - Each series entry must include at least a title
    - Series can include the same optional fields as movies (link, description, comment, cover image, genre, added by)
    - Series have additional tracking for season progress
+   - Seasons can be added during creation or added later individually
+   - Each season has a season number and watch status (WATCHED/UNWATCHED)
+   
+   METHODS TO ADD SERIES:
+   a) WITH INITIAL SEASONS:
+      - Include seasons array in POST request
+      - Each season requires: seasonNumber (Integer) and watchStatus (WATCHED/UNWATCHED)
+      - Example: Create "Breaking Bad" with seasons 1-5, where 1-3 are watched
+      
+   b) WITHOUT SEASONS (ADD LATER):
+      - Create series with only title and metadata
+      - Add seasons progressively using PATCH endpoint for each season
+      - Useful when you don't know total season count upfront
+      
+   c) WITH EXTERNAL LINK:
+      - Provide IMDB or Kinopoisk URL in 'link' field
+      - Trigger manual refresh to auto-fetch season information
+      - System will populate seasons from external source
 
 6. MARK SERIES SEASON AS WATCHED/UNWATCHED
    - Users can mark individual seasons as watched or unwatched
@@ -71,17 +89,38 @@ CORE FEATURES
      * Series is "unwatched" if any season is marked as unwatched
    - Users can skip seasons (e.g., mark Season 3 as watched without watching Season 2)
    - No episode-level tracking - seasons are marked manually as a whole
+   
+   SEASON MANAGEMENT OPERATIONS:
+   a) MARK INDIVIDUAL SEASON:
+      - PATCH /api/series/{id}/seasons/{seasonNumber}/watch-status
+      - If season doesn't exist, it's created automatically
+      - Updates series watch status after change
+      
+   b) MARK ALL SEASONS (BULK):
+      - PATCH /api/series/{id}/watch-status
+      - Updates ALL existing seasons to specified status
+      - Does not create new seasons
+      - Useful for: completed series, rewatching entire series
+      
+   c) REPLACE SEASONS ENTIRELY:
+      - PUT /api/series/{id} with seasons array
+      - Replaces all existing seasons with new array
+      - Useful for: restructuring season list, importing from external source
+      
+   d) ADD SEASONS PROGRESSIVELY:
+      - PATCH individual seasons one by one
+      - Each PATCH creates season if it doesn't exist
+      - Useful for: tracking as you watch, discovering new seasons
 
 7. AUTOMATIC SEASON REFRESH AND NOTIFICATIONS
    - System periodically checks for new seasons (e.g., weekly)
-   - System fetches latest season information from external sources (link description URLs)
+   - System fetches latest season information from external sources
    - Notifications are displayed when new seasons are detected for series where at least one season has been watched
    - Notifications persist until manually dismissed by the user
    - Notifications inform user which series has new seasons available
    - If external source is unavailable:
      * System retries in one hour
      * User can manually trigger a refresh check
-   - If series has no link description URL, season checking is disabled for that series
 
 
 DATA ATTRIBUTES
@@ -91,8 +130,6 @@ MOVIES:
 Each movie in the catalog contains:
 - Title: Name of the movie [REQUIRED]
 - Link: URL where the movie can be accessed/watched [OPTIONAL]
-- Link Description: URL to movie information page (IMDB, Kinopoisk, etc.) [OPTIONAL]
-  * Additional movie information can be fetched from this link in future enhancements
 - Comment: User's personal notes, thoughts, or review [OPTIONAL]
 - Cover Image: URL to the movie poster or thumbnail image [OPTIONAL]
 - Length: Duration of the movie (in minutes) [OPTIONAL]
@@ -106,24 +143,67 @@ TV SERIES:
 Each TV series in the catalog contains:
 - Title: Name of the series [REQUIRED]
 - Link: URL where the series can be accessed/watched [OPTIONAL]
-- Link Description: URL to series information page (IMDB, Kinopoisk, etc.) [OPTIONAL]
-  * Required for automatic season refresh functionality
-  * Used for automatic refresh of season information
 - Comment: User's personal notes, thoughts, or review [OPTIONAL]
 - Cover Image: URL to the series poster or thumbnail image [OPTIONAL]
 - Genre: Series categories/types - can have multiple genres, free text [OPTIONAL]
-- Seasons: Collection of seasons with watch status for each
-  * Season Number: Number identifier for the season
+- Seasons: Collection of seasons with watch status for each [OPTIONAL - can be empty]
+  * Season Number: Number identifier for the season (1, 2, 3, etc.)
   * Watch Status: Watched or unwatched for each season
   * Can be marked individually or all at once
-- Series Watch Status: Automatically calculated (watched if all seasons watched, unwatched otherwise)
+  * Can be provided during creation or added later
+  * No season order enforcement - can skip seasons
+- Series Watch Status: Automatically calculated (watched if all seasons watched, unwatched otherwise) [AUTOMATIC]
 - Total Available Seasons: Total number of seasons available (fetched from external source) [AUTOMATIC]
 - Has New Seasons: Flag indicating if new unwatched seasons are available [AUTOMATIC]
 - Series Status: Complete or ongoing (fetched from external source) [AUTOMATIC]
 - Added By: Name of the person who added this series to the catalog [OPTIONAL]
-- Date Added: Automatically tracked when series is added to the catalog
+- Date Added: Automatically tracked when series is added to the catalog [AUTOMATIC]
 - Last Season Check: Date when system last checked for new seasons [AUTOMATIC]
 - Priority: Numeric value for manual recommendation priority adjustment [OPTIONAL, default: 0]
+
+SEASON DATA STRUCTURE:
+Each season is an embedded object (not a separate collection) containing:
+- seasonNumber: Integer (1, 2, 3, etc.) [REQUIRED]
+- watchStatus: Enum ("WATCHED" or "UNWATCHED") [REQUIRED, default: UNWATCHED]
+
+SERIES API REQUEST/RESPONSE FORMAT:
+
+CREATE SERIES (POST /api/series):
+{
+  "title": "Breaking Bad",                    // REQUIRED
+  "link": "https://imdb.com/title/...",      // OPTIONAL
+  "comment": "Personal notes",                // OPTIONAL
+  "coverImage": "/api/images/{id}",          // OPTIONAL
+  "genres": ["Crime", "Drama"],              // OPTIONAL
+  "seasons": [                               // OPTIONAL
+    {"seasonNumber": 1, "watchStatus": "WATCHED"},
+    {"seasonNumber": 2, "watchStatus": "UNWATCHED"}
+  ],
+  "addedBy": "John",                         // OPTIONAL
+  "priority": 5                              // OPTIONAL
+}
+
+SERIES RESPONSE (GET/POST/PUT/PATCH):
+{
+  "id": "507f1f77bcf86cd799439011",
+  "title": "Breaking Bad",
+  "link": "https://imdb.com/title/...",
+  "comment": "Personal notes",
+  "coverImage": "/api/images/{id}",
+  "genres": ["Crime", "Drama"],
+  "seasons": [
+    {"seasonNumber": 1, "watchStatus": "WATCHED"},
+    {"seasonNumber": 2, "watchStatus": "UNWATCHED"}
+  ],
+  "seriesWatchStatus": "UNWATCHED",          // AUTO-CALCULATED
+  "totalAvailableSeasons": 5,                // FROM EXTERNAL SOURCE
+  "hasNewSeasons": true,                     // AUTO-CALCULATED
+  "seriesStatus": "COMPLETE",                // FROM EXTERNAL SOURCE
+  "addedBy": "John",
+  "dateAdded": "2025-11-14T10:30:00",       // AUTO-GENERATED
+  "lastSeasonCheck": "2025-11-14T10:30:00", // AUTO-UPDATED
+  "priority": 5
+}
 
 
 USER CONTEXT
@@ -158,12 +238,11 @@ DATA MANAGEMENT
   * Automatic periodic checks (e.g., weekly)
   * Manual refresh option available for users
   * Retry logic: If external source fails, retry in one hour
-  * Series without link description URL are excluded from automatic checks
 
 
 FUTURE ENHANCEMENTS
 -------------------
-- Fetch additional movie information automatically from link description URLs (IMDB, Kinopoisk)
+- Fetch additional movie information automatically from external sources (IMDB, Kinopoisk)
 - Merge duplicate movie/series records
 - Implement pagination for large catalogs
 - Add movie/series rating functionality
@@ -187,7 +266,6 @@ SUMMARY OF KEY DECISIONS
 ✓ Full filtering and sorting capabilities for catalog list (movies and series combined)
 ✓ Catalog sorting: unwatched items always appear first, then by priority (higher first), then by date added (older first) as default
 ✓ Series-specific filters: new unwatched seasons, complete vs. ongoing status
-✓ Link description points to external sources (IMDB, Kinopoisk, etc.)
 ✓ Series track season-by-season watch status (manual marking, no episode tracking)
 ✓ Series can be marked individually by season or all at once
 ✓ Users can skip seasons when marking as watched

@@ -150,6 +150,36 @@ body {
   visibility: visible;
 }
 
+.catalog-item.deleted {
+  opacity: 0.4;
+  filter: grayscale(100%);
+  pointer-events: none;
+  position: relative;
+}
+
+.catalog-item.deleted::after {
+  content: "REMOVED";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(229, 62, 62, 0.9);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 2px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  pointer-events: none;
+}
+
+.catalog-item.deleted:hover {
+  transform: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
 /* Filter Panel */
 .filter-panel {
   background: white;
@@ -489,6 +519,213 @@ body {
   50% {
     opacity: 0.8;
   }
+}
+
+/* Season Management */
+.season-management {
+  margin-top: 12px;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 12px;
+}
+
+.season-expand-button {
+  width: 100%;
+  padding: 8px 12px;
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.season-expand-button:hover {
+  background: #f0f0f0;
+  border-color: #cbd5e0;
+}
+
+.expand-icon {
+  font-size: 10px;
+  transition: transform 0.2s;
+}
+
+.season-list {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.season-list-empty {
+  padding: 16px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.season-list-header {
+  margin-bottom: 12px;
+}
+
+.season-progress {
+  margin-bottom: 8px;
+}
+
+.season-progress-text {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.season-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.season-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #48bb78, #38a169);
+  transition: width 0.3s ease;
+  border-radius: 3px;
+}
+
+.season-bulk-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.season-bulk-button {
+  flex: 1;
+  padding: 6px 10px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.season-bulk-button:hover:not(:disabled) {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+  transform: translateY(-1px);
+}
+
+.season-bulk-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.season-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.season-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: white;
+  border-radius: 5px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s;
+}
+
+.season-item:hover {
+  border-color: #cbd5e0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.season-item.watched {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.season-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.season-number {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.season-toggle-button {
+  padding: 4px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: white;
+  color: #6b7280;
+  min-width: 85px;
+  justify-content: center;
+}
+
+.season-toggle-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.season-toggle-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.season-toggle-button.watched {
+  background: #48bb78;
+  color: white;
+  border-color: #48bb78;
+}
+
+.season-toggle-button.watched:hover:not(:disabled) {
+  background: #38a169;
+  border-color: #38a169;
+}
+
+.season-toggle-button.unwatched {
+  background: white;
+  color: #6b7280;
+  border-color: #d1d5db;
+}
+
+.season-toggle-button.unwatched:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.season-icon {
+  font-size: 12px;
+}
+
+.season-loading {
+  animation: spin 1s linear infinite;
 }
 
 /* Footer */

@@ -17,6 +17,7 @@ function App() {
   });
   const [availableAdders, setAvailableAdders] = useState([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [deletedIds, setDeletedIds] = useState(new Set());
 
   useEffect(() => {
     fetchCatalog();
@@ -34,6 +35,9 @@ function App() {
       
       const response = await axios.get(`${API_BASE_URL}/catalog`, { params });
       setCatalog(response.data);
+      
+      // Clear deleted items on refresh
+      setDeletedIds(new Set());
       
       // Extract unique adders from catalog
       const adders = [...new Set(response.data
@@ -92,8 +96,8 @@ function App() {
 
       await axios.delete(endpoint);
       
-      // Refresh the catalog after deletion
-      await fetchCatalog();
+      // Mark item as deleted instead of removing it
+      setDeletedIds(prev => new Set([...prev, id]));
     } catch (err) {
       setError('Failed to delete item.');
       console.error('Error deleting item:', err);
@@ -106,26 +110,28 @@ function App() {
       const item = catalog.find(i => i.id === id);
       if (!item) return;
 
-      // Optimistically update the local state
-      setCatalog(prevCatalog => 
-        prevCatalog.map(catalogItem => 
-          catalogItem.id === id 
-            ? { ...catalogItem, watchStatus: 'WATCHED' }
-            : catalogItem
-        )
-      );
-
       const endpoint = item.contentType === 'MOVIE' 
         ? `${API_BASE_URL}/movies/${id}/watch-status`
         : `${API_BASE_URL}/series/${id}/watch-status`;
 
-      // Send the request in the background
-      axios.patch(endpoint, { watchStatus: 'WATCHED' }).catch(err => {
-        // Revert the optimistic update on error
-        setError('Failed to update watch status.');
-        console.error('Error updating watch status:', err);
-        fetchCatalog(); // Reload to get correct state
-      });
+      // Wait for the response to get the updated data
+      const response = await axios.patch(endpoint, { watchStatus: 'WATCHED' });
+      
+      // Update the catalog with the full response data
+      // For series, transform SeriesResponse to CatalogItemResponse format
+      setCatalog(prevCatalog => 
+        prevCatalog.map(catalogItem => {
+          if (catalogItem.id === id) {
+            return {
+              ...catalogItem,
+              ...response.data,
+              watchStatus: response.data.seriesWatchStatus || response.data.watchStatus,
+              contentType: catalogItem.contentType // Preserve contentType
+            };
+          }
+          return catalogItem;
+        })
+      );
     } catch (err) {
       setError('Failed to update watch status.');
       console.error('Error updating watch status:', err);
@@ -138,26 +144,28 @@ function App() {
       const item = catalog.find(i => i.id === id);
       if (!item) return;
 
-      // Optimistically update the local state
-      setCatalog(prevCatalog => 
-        prevCatalog.map(catalogItem => 
-          catalogItem.id === id 
-            ? { ...catalogItem, watchStatus: 'UNWATCHED' }
-            : catalogItem
-        )
-      );
-
       const endpoint = item.contentType === 'MOVIE' 
         ? `${API_BASE_URL}/movies/${id}/watch-status`
         : `${API_BASE_URL}/series/${id}/watch-status`;
 
-      // Send the request in the background
-      axios.patch(endpoint, { watchStatus: 'UNWATCHED' }).catch(err => {
-        // Revert the optimistic update on error
-        setError('Failed to update watch status.');
-        console.error('Error updating watch status:', err);
-        fetchCatalog(); // Reload to get correct state
-      });
+      // Wait for the response to get the updated data
+      const response = await axios.patch(endpoint, { watchStatus: 'UNWATCHED' });
+      
+      // Update the catalog with the full response data
+      // For series, transform SeriesResponse to CatalogItemResponse format
+      setCatalog(prevCatalog => 
+        prevCatalog.map(catalogItem => {
+          if (catalogItem.id === id) {
+            return {
+              ...catalogItem,
+              ...response.data,
+              watchStatus: response.data.seriesWatchStatus || response.data.watchStatus,
+              contentType: catalogItem.contentType // Preserve contentType
+            };
+          }
+          return catalogItem;
+        })
+      );
     } catch (err) {
       setError('Failed to update watch status.');
       console.error('Error updating watch status:', err);
@@ -208,6 +216,7 @@ function App() {
         {!loading && !error && (
           <CatalogList 
             items={catalog} 
+            deletedIds={deletedIds}
             onDelete={handleDelete}
             onMarkAsWatched={handleMarkAsWatched}
             onMarkAsUnwatched={handleMarkAsUnwatched}

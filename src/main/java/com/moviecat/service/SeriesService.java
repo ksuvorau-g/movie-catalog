@@ -41,19 +41,35 @@ public class SeriesService {
             log.warn("Series with title '{}' already exists in the catalog", request.getTitle());
         }
         
+        // Use provided seasons or create default season 1
+        List<Season> seasons = request.getSeasons() != null ? request.getSeasons() : new ArrayList<>();
+        
+        // Business rule: Series must have at least one season
+        if (seasons.isEmpty()) {
+            log.info("No seasons provided for series '{}', creating default season 1 in UNWATCHED status", request.getTitle());
+            Season defaultSeason = Season.builder()
+                    .seasonNumber(1)
+                    .watchStatus(WatchStatus.UNWATCHED)
+                    .build();
+            seasons.add(defaultSeason);
+        }
+        
         Series series = Series.builder()
                 .title(request.getTitle())
                 .link(request.getLink())
                 .comment(request.getComment())
                 .coverImage(request.getCoverImage())
                 .genres(request.getGenres())
-                .seasons(new ArrayList<>())
+                .seasons(seasons)
                 .seriesWatchStatus(WatchStatus.UNWATCHED)
                 .hasNewSeasons(false)
                 .addedBy(request.getAddedBy())
                 .dateAdded(LocalDateTime.now())
                 .priority(request.getPriority() != null ? request.getPriority() : 0)
                 .build();
+        
+        // Calculate initial watch status based on seasons
+        series.updateSeriesWatchStatus();
         
         Series savedSeries = seriesRepository.save(series);
         log.info("Series added successfully with id: {}", savedSeries.getId());
@@ -116,6 +132,15 @@ public class SeriesService {
         series.setAddedBy(request.getAddedBy());
         if (request.getPriority() != null) {
             series.setPriority(request.getPriority());
+        }
+        if (request.getSeasons() != null) {
+            // Business rule: Series must have at least one season
+            if (request.getSeasons().isEmpty()) {
+                throw new IllegalArgumentException("Cannot update series with empty seasons list. Series must have at least one season.");
+            }
+            series.setSeasons(request.getSeasons());
+            // Recalculate watch status based on updated seasons
+            series.updateSeriesWatchStatus();
         }
         
         Series updatedSeries = seriesRepository.save(series);

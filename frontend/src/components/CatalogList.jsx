@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import SeasonList from './SeasonList';
 
 const API_BASE_URL = '/api';
 
-function CatalogList({ items, onDelete, onMarkAsWatched, onMarkAsUnwatched }) {
+function CatalogList({ items, deletedIds = new Set(), onDelete, onMarkAsWatched, onMarkAsUnwatched }) {
   const [localItems, setLocalItems] = useState(items);
+  const [expandedSeries, setExpandedSeries] = useState(new Set());
 
   React.useEffect(() => {
     setLocalItems(items);
@@ -49,6 +51,36 @@ function CatalogList({ items, onDelete, onMarkAsWatched, onMarkAsUnwatched }) {
     }
   };
 
+  const toggleSeasonExpand = (seriesId) => {
+    setExpandedSeries(prevExpanded => {
+      const newExpanded = new Set(prevExpanded);
+      if (newExpanded.has(seriesId)) {
+        newExpanded.delete(seriesId);
+      } else {
+        newExpanded.add(seriesId);
+      }
+      return newExpanded;
+    });
+  };
+
+  const handleSeasonUpdate = (seriesId, updatedSeriesData) => {
+    // Update the local state with the new series data from the API
+    // Transform SeriesResponse to CatalogItemResponse format (seriesWatchStatus -> watchStatus)
+    setLocalItems(prevItems =>
+      prevItems.map(item => {
+        if (item.id === seriesId) {
+          return {
+            ...item,
+            ...updatedSeriesData,
+            watchStatus: updatedSeriesData.seriesWatchStatus || updatedSeriesData.watchStatus,
+            contentType: item.contentType // Preserve contentType from original item
+          };
+        }
+        return item;
+      })
+    );
+  };
+
   // Helper function to determine if coverImage is a URL or an image ID
   const getCoverImageUrl = (coverImage) => {
     if (!coverImage) return null;
@@ -64,21 +96,25 @@ function CatalogList({ items, onDelete, onMarkAsWatched, onMarkAsUnwatched }) {
 
   return (
     <div className="catalog-list">
-      {localItems.map((item) => (
-        <div key={item.id} className="catalog-item">
+      {localItems.map((item) => {
+        const isDeleted = deletedIds.has(item.id);
+        return (
+        <div key={item.id} className={`catalog-item ${isDeleted ? 'deleted' : ''}`}>
           <div className="catalog-item-actions">
             <button 
               className="action-button remove-button"
               onClick={() => handleDelete(item.id, item.title)}
-              title="Remove from catalog"
+              title={isDeleted ? "Removed" : "Remove from catalog"}
+              disabled={isDeleted}
             >
-              Remove
+              {isDeleted ? 'Removed' : 'Remove'}
             </button>
             {item.watchStatus === 'WATCHED' ? (
               <button 
                 className="action-button unwatched-button"
                 onClick={() => handleMarkAsUnwatched(item.id)}
                 title="Mark as unwatched"
+                disabled={isDeleted}
               >
                 Mark as Unwatched
               </button>
@@ -87,6 +123,7 @@ function CatalogList({ items, onDelete, onMarkAsWatched, onMarkAsUnwatched }) {
                 className="action-button watched-button"
                 onClick={() => handleMarkAsWatched(item.id)}
                 title="Mark as watched"
+                disabled={isDeleted}
               >
                 Mark as Watched
               </button>
@@ -163,6 +200,34 @@ function CatalogList({ items, onDelete, onMarkAsWatched, onMarkAsUnwatched }) {
                 {item.hasNewSeasons && (
                   <div className="new-season-badge">New Season Available!</div>
                 )}
+                {item.seasons && item.seasons.length > 0 && (
+                  <div className="season-management">
+                    <button
+                      className="season-expand-button"
+                      onClick={() => toggleSeasonExpand(item.id)}
+                      disabled={isDeleted}
+                    >
+                      {expandedSeries.has(item.id) ? (
+                        <>
+                          <span className="expand-icon">▼</span>
+                          Hide Seasons
+                        </>
+                      ) : (
+                        <>
+                          <span className="expand-icon">▶</span>
+                          Manage Seasons
+                        </>
+                      )}
+                    </button>
+                    {expandedSeries.has(item.id) && !isDeleted && (
+                      <SeasonList
+                        seriesId={item.id}
+                        seasons={item.seasons}
+                        onSeasonUpdate={(updatedData) => handleSeasonUpdate(item.id, updatedData)}
+                      />
+                    )}
+                  </div>
+                )}
               </>
             )}
 
@@ -182,6 +247,7 @@ function CatalogList({ items, onDelete, onMarkAsWatched, onMarkAsUnwatched }) {
                       className="priority-button priority-decrease"
                       onClick={() => handlePriorityChange(item.id, item.contentType, item.priority, -1)}
                       title="Decrease priority"
+                      disabled={isDeleted}
                     >
                       −
                     </button>
@@ -193,6 +259,7 @@ function CatalogList({ items, onDelete, onMarkAsWatched, onMarkAsUnwatched }) {
                     className="priority-button priority-increase"
                     onClick={() => handlePriorityChange(item.id, item.contentType, item.priority, 1)}
                     title="Increase priority"
+                    disabled={isDeleted}
                   >
                     +
                   </button>
@@ -210,7 +277,8 @@ function CatalogList({ items, onDelete, onMarkAsWatched, onMarkAsUnwatched }) {
             )}
           </div>
         </div>
-      ))}
+      );
+      })}
     </div>
   );
 }

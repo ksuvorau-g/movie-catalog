@@ -1,5 +1,6 @@
 package com.moviecat.dto;
 
+import com.moviecat.model.Season;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +22,7 @@ public class SeriesRequest {
     private String comment;
     private String coverImage;
     private List<String> genres;
+    private List<Season> seasons;
     private String addedBy;
     private Integer priority;
 }

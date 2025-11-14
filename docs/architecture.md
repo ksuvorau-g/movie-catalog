@@ -86,7 +86,6 @@ Movie Catalog is a REST API service built with Spring Boot that manages a person
   - Detect new seasons
   - Create notifications for new seasons
   - Handle refresh failures with retry logic
-  - Skip series without link description URLs
 
 - **NotificationService**
   - Create notifications for new seasons
@@ -144,7 +143,6 @@ Movie Catalog is a REST API service built with Spring Boot that manages a person
   - id: String (MongoDB ObjectId)
   - title: String (required)
   - link: String (optional)
-  - linkDescription: String (optional - URL to IMDB/Kinopoisk)
   - comment: String (optional)
   - coverImage: String (optional)
   - length: Integer (optional - in minutes)
@@ -157,7 +155,6 @@ Movie Catalog is a REST API service built with Spring Boot that manages a person
   - id: String (MongoDB ObjectId)
   - title: String (required)
   - link: String (optional)
-  - linkDescription: String (optional - URL to IMDB/Kinopoisk)
   - comment: String (optional)
   - coverImage: String (optional)
   - genres: List<String> (optional)
@@ -261,7 +258,7 @@ Movie Catalog is a REST API service built with Spring Boot that manages a person
 - **SeasonRefreshScheduler**
   - Scheduled task (weekly on Monday at midnight)
   - Triggers SeasonRefreshService
-  - Iterates through all series with link description URLs
+  - Iterates through all series
   - Handles errors and continues processing
   - Logs refresh results
 
@@ -319,7 +316,7 @@ Movie Catalog is a REST API service built with Spring Boot that manages a person
 ### Example: Scheduled Season Refresh
 1. Scheduler triggers SeasonRefreshScheduler
 2. Scheduler → SeasonRefreshService.refreshAllSeries()
-3. Service → SeriesRepository.findAllWithLinkDescription()
+3. Service → SeriesRepository.findAll()
 4. For each series:
    - Service → ExternalApiService.fetchSeasonInfo()
    - ExternalApiService → WebClient → External API (IMDB/Kinopoisk)
@@ -421,6 +418,403 @@ Scheduler → Service → Repository → MongoDB
 
 ---
 
+## Series Management Guide
+
+### Overview
+TV Series have more complex management than movies due to season tracking, automatic status calculation, and external data synchronization. This section provides comprehensive guidance for working with series.
+
+---
+
+### API Endpoints
+
+#### 1. Create New Series
+**Endpoint**: `POST /api/series`
+
+**Request Body** (`SeriesRequest`):
+```json
+{
+  "title": "Breaking Bad",
+  "link": "https://imdb.com/title/tt0903747",
+  "comment": "Highly recommended by friends",
+  "coverImage": "/api/images/abc123",
+  "genres": ["Crime", "Drama", "Thriller"],
+  "seasons": [
+    {"seasonNumber": 1, "watchStatus": "WATCHED"},
+    {"seasonNumber": 2, "watchStatus": "UNWATCHED"}
+  ],
+  "addedBy": "John",
+  "priority": 5
+}
+```
+
+**Field Descriptions**:
+- `title` (String, required): Series title
+- `link` (String, optional): URL for IMDB/Kinopoisk page (used for season refresh)
+- `comment` (String, optional): Personal notes or review
+- `coverImage` (String, optional): Image reference (use `/api/images/{id}` format)
+- `genres` (List<String>, optional): Genre tags (e.g., ["Drama", "Comedy"])
+- `seasons` (List<Season>, optional): Initial seasons with watch status
+  - `seasonNumber` (Integer): Season number (1, 2, 3, etc.)
+  - `watchStatus` (String): "WATCHED" or "UNWATCHED"
+- `addedBy` (String, optional): Person who added the series
+- `priority` (Integer, optional): Manual priority for recommendations (default: 0)
+
+**Response** (`SeriesResponse`):
+```json
+{
+  "id": "507f1f77bcf86cd799439011",
+  "title": "Breaking Bad",
+  "link": "https://imdb.com/title/tt0903747",
+  "comment": "Highly recommended by friends",
+  "coverImage": "/api/images/abc123",
+  "genres": ["Crime", "Drama", "Thriller"],
+  "seasons": [
+    {"seasonNumber": 1, "watchStatus": "WATCHED"},
+    {"seasonNumber": 2, "watchStatus": "UNWATCHED"}
+  ],
+  "seriesWatchStatus": "UNWATCHED",
+  "totalAvailableSeasons": null,
+  "hasNewSeasons": false,
+  "seriesStatus": null,
+  "addedBy": "John",
+  "dateAdded": "2025-11-14T10:30:00",
+  "lastSeasonCheck": null,
+  "priority": 5
+}
+```
+
+**Important Notes**:
+- `seriesWatchStatus` is auto-calculated: WATCHED if all seasons are watched, otherwise UNWATCHED
+- `seasons` can be empty initially and added later via season watch status updates
+- If no seasons provided, `seriesWatchStatus` defaults to UNWATCHED
+- `hasNewSeasons` is false until external refresh detects new seasons
+
+---
+
+#### 2. Update Series Information
+**Endpoint**: `PUT /api/series/{id}`
+
+**Request Body**: Same as `POST /api/series` (SeriesRequest)
+
+**Behavior**:
+- Updates all provided fields
+- If `seasons` array is provided, replaces existing seasons entirely
+- If `seasons` is null or omitted, existing seasons are preserved
+- `seriesWatchStatus` is recalculated if seasons are updated
+- Does NOT affect auto-managed fields: `totalAvailableSeasons`, `hasNewSeasons`, `seriesStatus`, `lastSeasonCheck`
+
+**Example - Update without affecting seasons**:
+```json
+{
+  "title": "Breaking Bad (Updated)",
+  "comment": "One of the best series ever",
+  "genres": ["Crime", "Drama"],
+  "priority": 10
+}
+```
+
+---
+
+#### 3. Mark Individual Season as Watched/Unwatched
+**Endpoint**: `PATCH /api/series/{id}/seasons/{seasonNumber}/watch-status`
+
+**Request Body** (`WatchStatusRequest`):
+```json
+{
+  "watchStatus": "WATCHED"
+}
+```
+
+**Behavior**:
+- If season doesn't exist, creates it automatically with the specified watch status
+- Updates watch status of existing season
+- Recalculates `seriesWatchStatus` based on all seasons
+- Returns updated series with all seasons
+
+**Example Response**:
+```json
+{
+  "id": "507f1f77bcf86cd799439011",
+  "title": "Breaking Bad",
+  "seasons": [
+    {"seasonNumber": 1, "watchStatus": "WATCHED"},
+    {"seasonNumber": 2, "watchStatus": "WATCHED"},
+    {"seasonNumber": 3, "watchStatus": "UNWATCHED"}
+  ],
+  "seriesWatchStatus": "UNWATCHED",
+  ...
+}
+```
+
+---
+
+#### 4. Mark Entire Series as Watched/Unwatched
+**Endpoint**: `PATCH /api/series/{id}/watch-status`
+
+**Request Body** (`WatchStatusRequest`):
+```json
+{
+  "watchStatus": "WATCHED"
+}
+```
+
+**Behavior**:
+- Updates watch status of ALL existing seasons to the specified value
+- Recalculates `seriesWatchStatus` (will match the provided status)
+- Does NOT create new seasons - only affects existing seasons
+- Useful for marking entire series as watched or resetting to unwatched
+
+**Use Cases**:
+- Mark all seasons as watched after binge-watching
+- Reset series to unwatched for rewatching
+
+---
+
+#### 5. Update Series Priority
+**Endpoint**: `PATCH /api/series/{id}/priority`
+
+**Request Body** (`PriorityRequest`):
+```json
+{
+  "priority": 10
+}
+```
+
+**Behavior**:
+- Updates manual priority for recommendations
+- Higher values increase recommendation probability
+- Default priority is 0
+- Can be negative to lower recommendation probability
+
+---
+
+#### 6. Manually Refresh Seasons
+**Endpoint**: `POST /api/series/{id}/refresh`
+
+**Request Body**: None
+
+**Behavior**:
+- Triggers manual season refresh from external source (IMDB/Kinopoisk)
+- Requires `link` field to be set on the series
+- Updates `totalAvailableSeasons`, `seriesStatus`, and `hasNewSeasons` flags
+- Updates `lastSeasonCheck` timestamp
+- Currently a placeholder - full implementation pending
+
+---
+
+#### 7. Get Series by ID
+**Endpoint**: `GET /api/series/{id}`
+
+**Response**: Complete series details (SeriesResponse)
+
+---
+
+#### 8. Get All Series
+**Endpoint**: `GET /api/series`
+
+**Response**: Array of all series (List<SeriesResponse>)
+
+---
+
+#### 9. Delete Series
+**Endpoint**: `DELETE /api/series/{id}`
+
+**Response**: HTTP 204 No Content
+
+**Behavior**:
+- Permanently removes series from database
+- Removes all associated seasons
+- Cannot be undone
+
+---
+
+### Season Management Patterns
+
+#### Pattern 1: Add Series with Initial Seasons
+```bash
+# Create series with first 3 seasons
+curl -X POST http://localhost:8080/api/series \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "The Wire",
+    "seasons": [
+      {"seasonNumber": 1, "watchStatus": "UNWATCHED"},
+      {"seasonNumber": 2, "watchStatus": "UNWATCHED"},
+      {"seasonNumber": 3, "watchStatus": "UNWATCHED"}
+    ]
+  }'
+```
+
+#### Pattern 2: Add Series Without Seasons, Add Later
+```bash
+# Step 1: Create series without seasons
+curl -X POST http://localhost:8080/api/series \
+  -H "Content-Type: application/json" \
+  -d '{"title": "The Sopranos"}'
+
+# Step 2: Add seasons one by one as you discover them
+curl -X PATCH http://localhost:8080/api/series/{id}/seasons/1/watch-status \
+  -H "Content-Type: application/json" \
+  -d '{"watchStatus": "UNWATCHED"}'
+```
+
+#### Pattern 3: Progressive Season Tracking
+```bash
+# Mark season 1 as watched
+curl -X PATCH http://localhost:8080/api/series/{id}/seasons/1/watch-status \
+  -H "Content-Type: application/json" \
+  -d '{"watchStatus": "WATCHED"}'
+
+# Mark season 2 as watched
+curl -X PATCH http://localhost:8080/api/series/{id}/seasons/2/watch-status \
+  -H "Content-Type: application/json" \
+  -d '{"watchStatus": "WATCHED"}'
+
+# Series remains UNWATCHED until all seasons marked
+```
+
+#### Pattern 4: Bulk Update All Seasons
+```bash
+# Mark entire series as watched (affects all existing seasons)
+curl -X PATCH http://localhost:8080/api/series/{id}/watch-status \
+  -H "Content-Type: application/json" \
+  -d '{"watchStatus": "WATCHED"}'
+```
+
+#### Pattern 5: Update Seasons via PUT
+```bash
+# Replace all seasons at once
+curl -X PUT http://localhost:8080/api/series/{id} \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Game of Thrones",
+    "seasons": [
+      {"seasonNumber": 1, "watchStatus": "WATCHED"},
+      {"seasonNumber": 2, "watchStatus": "WATCHED"},
+      {"seasonNumber": 3, "watchStatus": "WATCHED"},
+      {"seasonNumber": 4, "watchStatus": "UNWATCHED"},
+      {"seasonNumber": 5, "watchStatus": "UNWATCHED"}
+    ]
+  }'
+```
+
+---
+
+### Watch Status Calculation Rules
+
+**Series Watch Status Logic**:
+1. If `seasons` list is empty → `seriesWatchStatus = UNWATCHED`
+2. If all seasons have `watchStatus = WATCHED` → `seriesWatchStatus = WATCHED`
+3. If any season has `watchStatus = UNWATCHED` → `seriesWatchStatus = UNWATCHED`
+
+**Automatic Recalculation Triggers**:
+- When series is created with seasons
+- When season watch status is updated (individual or bulk)
+- When seasons array is updated via PUT request
+- After external season refresh (if implemented)
+
+**Important Behaviors**:
+- Users can skip seasons (mark Season 3 as watched without watching Season 2)
+- There's no enforced season order
+- Seasons are marked manually - no episode-level tracking
+- Adding a new unwatched season to a fully watched series changes status to UNWATCHED
+
+---
+
+### Best Practices
+
+#### For Initial Setup
+1. **With Known Seasons**: Include all seasons in POST request
+2. **Unknown Seasons**: Create series with `link` field, trigger manual refresh to fetch seasons
+3. **Gradual Tracking**: Create without seasons, add via PATCH as you watch
+
+#### For Season Updates
+1. **Individual Updates**: Use `PATCH /seasons/{seasonNumber}/watch-status` for single season changes
+2. **Bulk Updates**: Use `PATCH /watch-status` for marking entire series
+3. **Complete Replacement**: Use `PUT` with full seasons array for restructuring
+
+#### For External Integration
+1. Always set `link` field to IMDB or Kinopoisk URL
+2. Use `POST /{id}/refresh` to manually sync seasons
+3. Automatic refresh runs weekly (Mondays at midnight)
+4. External data populates: `totalAvailableSeasons`, `seriesStatus`, `hasNewSeasons`
+
+#### For Recommendations
+1. Set higher `priority` for series you're actively watching
+2. Series with `hasNewSeasons=true` automatically get high recommendation weight
+3. Only series with unwatched seasons appear in recommendations
+4. Marking all seasons as watched removes series from recommendations
+
+---
+
+### Common Scenarios
+
+#### Scenario 1: Starting a New Series
+```json
+// POST /api/series
+{
+  "title": "Stranger Things",
+  "link": "https://www.imdb.com/title/tt4574334",
+  "seasons": [
+    {"seasonNumber": 1, "watchStatus": "UNWATCHED"}
+  ],
+  "priority": 8
+}
+```
+
+#### Scenario 2: Finished Season, Moving to Next
+```json
+// PATCH /api/series/{id}/seasons/1/watch-status
+{"watchStatus": "WATCHED"}
+
+// Then add next season
+// PATCH /api/series/{id}/seasons/2/watch-status
+{"watchStatus": "UNWATCHED"}
+```
+
+#### Scenario 3: Series Complete, Mark All Watched
+```json
+// PATCH /api/series/{id}/watch-status
+{"watchStatus": "WATCHED"}
+```
+
+#### Scenario 4: Rewatch Series
+```json
+// PATCH /api/series/{id}/watch-status
+{"watchStatus": "UNWATCHED"}
+// All seasons reset to unwatched
+```
+
+#### Scenario 5: Skip to Latest Season
+```json
+// Can mark any season without prerequisite
+// PATCH /api/series/{id}/seasons/5/watch-status
+{"watchStatus": "WATCHED"}
+// Seasons 1-4 remain unwatched, series status = UNWATCHED
+```
+
+---
+
+### Troubleshooting
+
+**Problem**: Seasons not saving when creating series
+- **Solution**: Ensure `seasons` array is included in POST request body
+- **Solution**: Verify JSON structure matches Season model (seasonNumber + watchStatus)
+
+**Problem**: Series watch status not updating
+- **Solution**: Check that `updateSeriesWatchStatus()` is called after season changes
+- **Solution**: Verify all seasons are properly saved in database
+
+**Problem**: Manual refresh not working
+- **Solution**: Ensure `link` field is set with valid IMDB/Kinopoisk URL
+- **Solution**: Check external API service implementation status
+
+**Problem**: Series not appearing in recommendations
+- **Solution**: Ensure at least one season has `watchStatus = UNWATCHED`
+- **Solution**: Check if `seriesWatchStatus = UNWATCHED`
+
+---
+
 ## Future Architecture Enhancements
 
 1. **Caching Layer**: Redis for external API responses
@@ -429,3 +823,5 @@ Scheduler → Service → Repository → MongoDB
 4. **API Gateway**: If service grows into microservices
 5. **User Management**: Multi-user support with authentication
 6. **Analytics Service**: Track watching patterns and statistics
+
+```

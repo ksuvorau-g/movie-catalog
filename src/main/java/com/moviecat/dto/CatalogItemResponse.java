@@ -1,6 +1,7 @@
 package com.moviecat.dto;
 
 import com.moviecat.model.ContentType;
+import com.moviecat.model.Season;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,6 +34,7 @@ public class CatalogItemResponse {
     private Integer length;
     
     // Series-specific
+    private List<Season> seasons;
     private Boolean hasNewSeasons;
     private String seriesStatus;
     private Integer totalAvailableSeasons;
