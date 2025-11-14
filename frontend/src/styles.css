@@ -180,6 +180,48 @@ body {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
+/* Added By Tabs */
+.added-by-tabs {
+  background: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  margin-bottom: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.added-by-tabs .tab {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #f5f5f5;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.added-by-tabs .tab:hover {
+  background: #e0e0e0;
+  transform: translateY(-1px);
+}
+
+.added-by-tabs .tab.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.added-by-tabs .tab.active:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
 /* Filter Panel */
 .filter-panel {
   background: white;
@@ -1094,6 +1136,18 @@ body {
   .add-movie-button {
     width: 100%;
     justify-content: center;
+  }
+
+  .added-by-tabs {
+    padding: 10px;
+    gap: 6px;
+  }
+
+  .added-by-tabs .tab {
+    flex: 1 1 auto;
+    min-width: 70px;
+    padding: 8px 12px;
+    font-size: 13px;
   }
 
   .filter-panel {

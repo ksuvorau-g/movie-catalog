@@ -3,6 +3,7 @@ import axios from 'axios';
 import CatalogList from './components/CatalogList';
 import FilterPanel from './components/FilterPanel';
 import AddMovieModal from './components/AddMovieModal';
+import AddedByTabs from './components/AddedByTabs';
 
 const API_BASE_URL = '/api';
 
@@ -18,6 +19,23 @@ function App() {
   const [availableAdders, setAvailableAdders] = useState([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [deletedIds, setDeletedIds] = useState(new Set());
+
+  // Load available adders once on mount
+  useEffect(() => {
+    const loadAvailableAdders = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/catalog`);
+        const adders = [...new Set(response.data
+          .map(item => item.addedBy)
+          .filter(adder => adder))];
+        setAvailableAdders(adders.sort());
+      } catch (err) {
+        console.error('Error loading available adders:', err);
+      }
+    };
+    
+    loadAvailableAdders();
+  }, []);
 
   useEffect(() => {
     fetchCatalog();
@@ -38,12 +56,6 @@ function App() {
       
       // Clear deleted items on refresh
       setDeletedIds(new Set());
-      
-      // Extract unique adders from catalog
-      const adders = [...new Set(response.data
-        .map(item => item.addedBy)
-        .filter(adder => adder))];
-      setAvailableAdders(adders.sort());
     } catch (err) {
       setError('Failed to load catalog. Make sure the backend is running on port 8080.');
       console.error('Error fetching catalog:', err);
@@ -82,6 +94,10 @@ function App() {
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
+  };
+
+  const handleAdderChange = (adder) => {
+    setFilters({ ...filters, addedBy: adder });
   };
 
   const handleDelete = async (id) => {
@@ -172,9 +188,20 @@ function App() {
     }
   };
 
-  const handleAddMovie = () => {
+  const handleAddMovie = async () => {
     // Refresh the catalog after adding a movie/series
-    fetchCatalog();
+    await fetchCatalog();
+    
+    // Reload available adders to include newly added user
+    try {
+      const response = await axios.get(`${API_BASE_URL}/catalog`);
+      const adders = [...new Set(response.data
+        .map(item => item.addedBy)
+        .filter(adder => adder))];
+      setAvailableAdders(adders.sort());
+    } catch (err) {
+      console.error('Error reloading available adders:', err);
+    }
   };
 
   return (
@@ -204,10 +231,15 @@ function App() {
         </button>
       </header>
 
+      <AddedByTabs
+        selectedAdder={filters.addedBy}
+        onAdderChange={handleAdderChange}
+        availableAdders={availableAdders}
+      />
+
       <FilterPanel 
         filters={filters}
         onFilterChange={handleFilterChange}
-        availableAdders={availableAdders}
       />
 
       <main className="app-main">

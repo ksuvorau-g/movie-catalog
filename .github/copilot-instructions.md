@@ -34,11 +34,12 @@ Only returns unwatched content (movies with `UNWATCHED` status, series with unwa
 ### Local Development Commands (Makefile)
 ```bash
 make run      # Full stack (backend + frontend + MongoDB) in Docker - blocking foreground
+make run-bg   # Full stack (backend + frontend + MongoDB) in Docker - non-blocking background - use this when using playwright tools
 make serve    # Backend in Docker, frontend with hot reload (npm start) - best for UI work
 make test     # Run backend Maven tests in Docker
 ```
 
-**Hot Reload Setup**: `make serve` starts backend containers, then runs `npm start` in `frontend/` with Webpack dev server on port 3000. All `src/` changes auto-refresh browser.
+**Hot Reload Setup**: `make serve` starts backend containers, then runs `npm start` in `frontend/` with Webpack dev server on port 3000. All `src/` changes auto-refresh browser. (Don't use `make serve`, hot reload is not working correctly)
 
 ### Testing
 - Backend tests: `src/test/java/com/moviecat/` - Use `@SpringBootTest` for integration tests
@@ -171,3 +172,6 @@ Access at `http://localhost:8080/swagger-ui.html` - auto-generated from SpringDo
 - `ImageService.java` - Image download, storage, and retrieval with WebClient
 - `docker-compose.yml` - Full service orchestration and networking
 - `Makefile` - Developer workflow commands (run/serve/test)
+
+# Important Tips
+Use playwright tools for frontend testing when running in background mode (`make run-bg`). Always validate new endpoints with Swagger UI. Follow layered architecture strictly to maintain code quality and separation of concerns.

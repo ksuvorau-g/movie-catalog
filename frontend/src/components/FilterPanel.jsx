@@ -1,12 +1,8 @@
 import React from 'react';
 
-function FilterPanel({ filters, onFilterChange, availableAdders }) {
+function FilterPanel({ filters, onFilterChange }) {
   const handleWatchStatusChange = (e) => {
     onFilterChange({ ...filters, watchStatus: e.target.value });
-  };
-
-  const handleAddedByChange = (e) => {
-    onFilterChange({ ...filters, addedBy: e.target.value });
   };
 
   const handleClearFilters = () => {
@@ -27,22 +23,6 @@ function FilterPanel({ filters, onFilterChange, availableAdders }) {
           <option value="">All</option>
           <option value="WATCHED">Watched</option>
           <option value="UNWATCHED">Unwatched</option>
-        </select>
-      </div>
-
-      <div className="filter-group">
-        <label className="filter-label">Added By:</label>
-        <select 
-          className="filter-select"
-          value={filters.addedBy}
-          onChange={handleAddedByChange}
-        >
-          <option value="">All</option>
-          {availableAdders.map((adder, idx) => (
-            <option key={idx} value={adder}>
-              {adder}
-            </option>
-          ))}
         </select>
       </div>
 
