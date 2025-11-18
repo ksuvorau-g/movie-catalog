@@ -304,6 +304,7 @@ public class SeriesService {
                 .dateAdded(series.getDateAdded())
                 .lastSeasonCheck(series.getLastSeasonCheck())
                 .priority(series.getPriority())
+                .tmdbId(series.getTmdbId())
                 .build();
     }
 }

@@ -22,6 +22,7 @@ public class RecommendationResponse {
     private String coverImage;
     private String comment;
     private Integer priority;
+    private String addedBy;
     
     // Movie-specific
     private Integer length;

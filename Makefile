@@ -10,6 +10,7 @@ help: ## Show this help message
 	@echo '  run          Run backend and frontend in Docker Compose (foreground, Ctrl+C to stop)'
 	@echo '  serve        Run backend in Docker, frontend with hot reload'
 	@echo '  test         Run backend tests in Docker Compose'
+	@echo '  kill-webpack Kill webpack dev server process running on port 3000'
 
 run: ## Run backend and frontend in Docker Compose (foreground)
 	@echo "Starting backend and frontend in Docker Compose..."
@@ -50,6 +51,13 @@ serve: _stop _build-backend ## Stop containers, run backend in Docker, frontend 
 test: ## Run backend tests in Docker Compose
 	@echo "Running backend tests in Docker Compose..."
 	$(DOCKER_COMPOSE) run --rm app mvn test
+
+kill-webpack: ## Kill webpack dev server process
+	@echo "Killing webpack dev server..."
+	@-pkill -f "webpack serve" 2>/dev/null || true
+	@-pkill -f "webpack-dev-server" 2>/dev/null || true
+	@-lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+	@echo "✓ Webpack dev server stopped"
 
 # Internal targets (not meant to be called directly)
 _stop:

@@ -90,4 +90,10 @@ public class Movie {
     @Indexed
     @Builder.Default
     private Integer priority = 0;
+    
+    /**
+     * TMDB (The Movie Database) ID for this movie (optional).
+     * Used for fetching additional metadata and updates.
+     */
+    private Integer tmdbId;
 }

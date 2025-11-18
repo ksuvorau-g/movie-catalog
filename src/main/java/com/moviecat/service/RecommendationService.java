@@ -27,53 +27,94 @@ public class RecommendationService {
     private final Random random = new Random();
     
     /**
-     * Get recommendation for next movie/series to watch.
+     * Get multiple recommendations for next movies/series to watch.
      * Uses weighted random algorithm considering:
      * - Manual priority (highest)
      * - Series with new seasons
      * - Age-based weighting (older items prioritized)
      * 
+     * @param count number of recommendations to return
+     * @param addedBy filter by user who added the content (null for all users)
+     * @return list of recommended movies or series
+     */
+    public List<RecommendationResponse> getRecommendations(int count, String addedBy) {
+        log.info("Getting {} recommendations for user: {}", count, addedBy != null ? addedBy : "all");
+        
+        List<WeightedItem> candidates = buildCandidateList(addedBy);
+        
+        if (candidates.isEmpty()) {
+            log.warn("No unwatched content available for recommendation");
+            return new ArrayList<>();
+        }
+        
+        List<RecommendationResponse> recommendations = new ArrayList<>();
+        List<WeightedItem> availableCandidates = new ArrayList<>(candidates);
+        
+        // Select multiple items without replacement
+        for (int i = 0; i < count && !availableCandidates.isEmpty(); i++) {
+            WeightedItem selected = selectWeightedRandom(availableCandidates);
+            availableCandidates.remove(selected);
+            
+            log.info("Recommendation {} selected: {} (weight: {})", 
+                    i + 1,
+                    selected.movie != null ? selected.movie.getTitle() : selected.series.getTitle(),
+                    selected.weight);
+            
+            if (selected.movie != null) {
+                recommendations.add(movieToRecommendation(selected.movie));
+            } else {
+                recommendations.add(seriesToRecommendation(selected.series));
+            }
+        }
+        
+        return recommendations;
+    }
+    
+    /**
+     * Get single recommendation (backward compatibility).
+     * 
      * @return recommended movie or series
      * @throws RuntimeException if no unwatched content available
      */
     public RecommendationResponse getRecommendation() {
-        log.info("Getting recommendation");
-        
+        List<RecommendationResponse> recommendations = getRecommendations(1, null);
+        if (recommendations.isEmpty()) {
+            throw new RuntimeException("No unwatched content available for recommendation");
+        }
+        return recommendations.get(0);
+    }
+    
+    /**
+     * Build list of candidates with their weights.
+     * 
+     * @param addedBy filter by user who added the content (null for all users)
+     * @return list of weighted items
+     */
+    private List<WeightedItem> buildCandidateList(String addedBy) {
         List<WeightedItem> candidates = new ArrayList<>();
         
         // Get unwatched movies
         List<Movie> unwatchedMovies = movieRepository.findByWatchStatus(WatchStatus.UNWATCHED);
         for (Movie movie : unwatchedMovies) {
-            double weight = calculateWeight(movie.getDateAdded(), movie.getPriority(), false);
-            candidates.add(new WeightedItem(movie, null, weight));
+            if (addedBy == null || addedBy.equals(movie.getAddedBy())) {
+                double weight = calculateWeight(movie.getDateAdded(), movie.getPriority(), false);
+                candidates.add(new WeightedItem(movie, null, weight));
+            }
         }
         
         // Get series with unwatched seasons
         List<Series> allSeries = seriesRepository.findAll();
         for (Series series : allSeries) {
             if (series.getSeriesWatchStatus() == WatchStatus.UNWATCHED) {
-                boolean hasNewSeasons = series.getHasNewSeasons() != null && series.getHasNewSeasons();
-                double weight = calculateWeight(series.getDateAdded(), series.getPriority(), hasNewSeasons);
-                candidates.add(new WeightedItem(null, series, weight));
+                if (addedBy == null || addedBy.equals(series.getAddedBy())) {
+                    boolean hasNewSeasons = series.getHasNewSeasons() != null && series.getHasNewSeasons();
+                    double weight = calculateWeight(series.getDateAdded(), series.getPriority(), hasNewSeasons);
+                    candidates.add(new WeightedItem(null, series, weight));
+                }
             }
         }
         
-        if (candidates.isEmpty()) {
-            throw new RuntimeException("No unwatched content available for recommendation");
-        }
-        
-        // Select based on weighted random
-        WeightedItem selected = selectWeightedRandom(candidates);
-        
-        log.info("Recommendation selected: {} (weight: {})", 
-                selected.movie != null ? selected.movie.getTitle() : selected.series.getTitle(),
-                selected.weight);
-        
-        if (selected.movie != null) {
-            return movieToRecommendation(selected.movie);
-        } else {
-            return seriesToRecommendation(selected.series);
-        }
+        return candidates;
     }
     
     /**
@@ -134,6 +175,7 @@ public class RecommendationService {
                 .coverImage(movie.getCoverImage())
                 .comment(movie.getComment())
                 .priority(movie.getPriority())
+                .addedBy(movie.getAddedBy())
                 .length(movie.getLength())
                 .build();
     }
@@ -150,6 +192,7 @@ public class RecommendationService {
                 .coverImage(series.getCoverImage())
                 .comment(series.getComment())
                 .priority(series.getPriority())
+                .addedBy(series.getAddedBy())
                 .hasNewSeasons(series.getHasNewSeasons())
                 .totalAvailableSeasons(series.getTotalAvailableSeasons())
                 .build();

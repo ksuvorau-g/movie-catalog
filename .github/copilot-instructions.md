@@ -175,3 +175,4 @@ Access at `http://localhost:8080/swagger-ui.html` - auto-generated from SpringDo
 
 # Important Tips
 Use playwright tools for frontend testing when running in background mode (`make run-bg`). Always validate new endpoints with Swagger UI. Follow layered architecture strictly to maintain code quality and separation of concerns.
+NEVER run docker or docker-compose commands directly. Use the provided Makefile commands for consistency. You can use `make kill-webpack` to stop any webpack dev server processes running on port 3000. Also `make run-bg` to run and rebuild docker containers in the background when using playwright tools.

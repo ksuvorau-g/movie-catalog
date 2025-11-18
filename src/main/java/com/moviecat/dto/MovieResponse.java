@@ -29,4 +29,5 @@ public class MovieResponse {
     private String addedBy;
     private LocalDateTime dateAdded;
     private Integer priority;
+    private Integer tmdbId;
 }

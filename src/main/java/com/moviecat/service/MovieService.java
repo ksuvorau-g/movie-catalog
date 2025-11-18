@@ -200,6 +200,7 @@ public class MovieService {
                 .addedBy(movie.getAddedBy())
                 .dateAdded(movie.getDateAdded())
                 .priority(movie.getPriority())
+                .tmdbId(movie.getTmdbId())
                 .build();
     }
 }

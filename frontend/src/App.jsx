@@ -4,6 +4,7 @@ import CatalogList from './components/CatalogList';
 import FilterPanel from './components/FilterPanel';
 import AddMovieModal from './components/AddMovieModal';
 import AddedByTabs from './components/AddedByTabs';
+import RecommendationsBlock from './components/RecommendationsBlock';
 
 const API_BASE_URL = '/api';
 
@@ -188,19 +189,13 @@ function App() {
     }
   };
 
-  const handleAddMovie = async () => {
-    // Refresh the catalog after adding a movie/series
-    await fetchCatalog();
+  const handleAddMovie = async (newItem) => {
+    // Add the newly created item to the beginning of the catalog
+    setCatalog(prevCatalog => [newItem, ...prevCatalog]);
     
-    // Reload available adders to include newly added user
-    try {
-      const response = await axios.get(`${API_BASE_URL}/catalog`);
-      const adders = [...new Set(response.data
-        .map(item => item.addedBy)
-        .filter(adder => adder))];
-      setAvailableAdders(adders.sort());
-    } catch (err) {
-      console.error('Error reloading available adders:', err);
+    // Update available adders if the new item has an addedBy value
+    if (newItem.addedBy && !availableAdders.includes(newItem.addedBy)) {
+      setAvailableAdders(prev => [...prev, newItem.addedBy].sort());
     }
   };
 
@@ -236,6 +231,8 @@ function App() {
         onAdderChange={handleAdderChange}
         availableAdders={availableAdders}
       />
+
+      <RecommendationsBlock addedBy={filters.addedBy} />
 
       <FilterPanel 
         filters={filters}

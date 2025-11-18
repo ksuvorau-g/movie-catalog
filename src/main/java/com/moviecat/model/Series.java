@@ -118,6 +118,12 @@ public class Series {
     private Integer priority = 0;
     
     /**
+     * TMDB (The Movie Database) ID for this series (optional).
+     * Used for fetching additional metadata and updates.
+     */
+    private Integer tmdbId;
+    
+    /**
      * Calculate and update series watch status based on seasons.
      * Series is watched only if all seasons are watched.
      */

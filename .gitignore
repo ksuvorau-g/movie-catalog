@@ -27,3 +27,6 @@ images/*
 # Environment variables
 .env
 .env.local
+
+# Secret configuration files
+src/main/resources/application-secrets.properties

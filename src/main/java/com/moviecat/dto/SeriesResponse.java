@@ -35,4 +35,5 @@ public class SeriesResponse {
     private LocalDateTime dateAdded;
     private LocalDateTime lastSeasonCheck;
     private Integer priority;
+    private Integer tmdbId;
 }
