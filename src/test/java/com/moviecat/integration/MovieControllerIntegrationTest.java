@@ -22,13 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Integration tests for Movie REST API endpoints.
  */
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = {
-        "spring.autoconfigure.exclude=de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoAutoConfiguration"
-    }
-)
-class MovieControllerIntegrationTest {
+class MovieControllerIntegrationTest extends AbstractIntegrationTest {
 
     @LocalServerPort
     private int port;

@@ -25,13 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Integration tests for Recommendation REST API endpoints.
  */
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = {
-        "spring.autoconfigure.exclude=de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoAutoConfiguration"
-    }
-)
-class RecommendationControllerIntegrationTest {
+class RecommendationControllerIntegrationTest extends AbstractIntegrationTest {
 
     @LocalServerPort
     private int port;
@@ -71,16 +65,17 @@ class RecommendationControllerIntegrationTest {
         restTemplate.postForObject(moviesUrl, movie, Object.class);
 
         // When
-        ResponseEntity<RecommendationResponse> response = restTemplate.getForEntity(
+        ResponseEntity<RecommendationResponse[]> response = restTemplate.getForEntity(
                 recommendUrl,
-                RecommendationResponse.class
+                RecommendationResponse[].class
         );
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getTitle()).isEqualTo("Test Movie");
-        assertThat(response.getBody().getContentType()).isEqualTo(ContentType.MOVIE);
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody()[0].getTitle()).isEqualTo("Test Movie");
+        assertThat(response.getBody()[0].getContentType()).isEqualTo(ContentType.MOVIE);
     }
 
     @Test
@@ -95,16 +90,17 @@ class RecommendationControllerIntegrationTest {
         restTemplate.postForObject(seriesUrl, series, Object.class);
 
         // When
-        ResponseEntity<RecommendationResponse> response = restTemplate.getForEntity(
+        ResponseEntity<RecommendationResponse[]> response = restTemplate.getForEntity(
                 recommendUrl,
-                RecommendationResponse.class
+                RecommendationResponse[].class
         );
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getTitle()).isEqualTo("Test Series");
-        assertThat(response.getBody().getContentType()).isEqualTo(ContentType.SERIES);
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody()[0].getTitle()).isEqualTo("Test Series");
+        assertThat(response.getBody()[0].getContentType()).isEqualTo(ContentType.SERIES);
     }
 
     @Test
@@ -121,12 +117,12 @@ class RecommendationControllerIntegrationTest {
         // When - request recommendations multiple times
         Set<String> recommendedTitles = new HashSet<>();
         for (int i = 0; i < 10; i++) {
-            ResponseEntity<RecommendationResponse> response = restTemplate.getForEntity(
+            ResponseEntity<RecommendationResponse[]> response = restTemplate.getForEntity(
                     recommendUrl,
-                    RecommendationResponse.class
+                    RecommendationResponse[].class
             );
-            if (response.getBody() != null) {
-                recommendedTitles.add(response.getBody().getTitle());
+            if (response.getBody() != null && response.getBody().length > 0) {
+                recommendedTitles.add(response.getBody()[0].getTitle());
             }
         }
 
@@ -158,13 +154,13 @@ class RecommendationControllerIntegrationTest {
         int totalRequests = 20;
         
         for (int i = 0; i < totalRequests; i++) {
-            ResponseEntity<RecommendationResponse> response = restTemplate.getForEntity(
+            ResponseEntity<RecommendationResponse[]> response = restTemplate.getForEntity(
                     recommendUrl,
-                    RecommendationResponse.class
+                    RecommendationResponse[].class
             );
             
-            if (response.getBody() != null && 
-                "High Priority Movie".equals(response.getBody().getTitle())) {
+            if (response.getBody() != null && response.getBody().length > 0 && 
+                "High Priority Movie".equals(response.getBody()[0].getTitle())) {
                 highPriorityCount++;
             }
         }
@@ -193,12 +189,12 @@ class RecommendationControllerIntegrationTest {
         // When - request multiple recommendations
         Set<ContentType> recommendedTypes = new HashSet<>();
         for (int i = 0; i < 10; i++) {
-            ResponseEntity<RecommendationResponse> response = restTemplate.getForEntity(
+            ResponseEntity<RecommendationResponse[]> response = restTemplate.getForEntity(
                     recommendUrl,
-                    RecommendationResponse.class
+                    RecommendationResponse[].class
             );
-            if (response.getBody() != null) {
-                recommendedTypes.add(response.getBody().getContentType());
+            if (response.getBody() != null && response.getBody().length > 0) {
+                recommendedTypes.add(response.getBody()[0].getContentType());
             }
         }
 
@@ -211,14 +207,15 @@ class RecommendationControllerIntegrationTest {
     @Test
     void shouldHandleEmptyCatalog() {
         // When - no movies or series exist
-        ResponseEntity<RecommendationResponse> response = restTemplate.getForEntity(
+        ResponseEntity<RecommendationResponse[]> response = restTemplate.getForEntity(
                 recommendUrl,
-                RecommendationResponse.class
+                RecommendationResponse[].class
         );
 
-        // Then - should return error or empty response
-        // This depends on how the service handles empty catalog
-        assertThat(response.getStatusCode()).isIn(HttpStatus.OK, HttpStatus.NOT_FOUND, HttpStatus.INTERNAL_SERVER_ERROR);
+        // Then - should return OK with empty array
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).isEmpty();
     }
 
     @Test
@@ -234,15 +231,16 @@ class RecommendationControllerIntegrationTest {
         restTemplate.postForObject(moviesUrl, movie, Object.class);
 
         // When
-        ResponseEntity<RecommendationResponse> response = restTemplate.getForEntity(
+        ResponseEntity<RecommendationResponse[]> response = restTemplate.getForEntity(
                 recommendUrl,
-                RecommendationResponse.class
+                RecommendationResponse[].class
         );
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getLink()).isEqualTo("https://example.com/movie");
-        assertThat(response.getBody().getContentType()).isEqualTo(ContentType.MOVIE);
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody()[0].getLink()).isEqualTo("https://example.com/movie");
+        assertThat(response.getBody()[0].getContentType()).isEqualTo(ContentType.MOVIE);
     }
 }

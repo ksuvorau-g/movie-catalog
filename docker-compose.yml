@@ -47,6 +47,22 @@ services:
     networks:
       - moviecat-network
 
+  test-runner:
+    image: maven:3.9-eclipse-temurin-21
+    container_name: moviecat-test-runner
+    working_dir: /app
+    volumes:
+      - .:/app
+      - ~/.m2:/root/.m2
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - MAVEN_OPTS=-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true
+    profiles:
+      - test
+    networks:
+      - moviecat-network
+
 networks:
   moviecat-network:
     driver: bridge

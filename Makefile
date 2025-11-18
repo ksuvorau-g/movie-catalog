@@ -8,8 +8,9 @@ help: ## Show this help message
 	@echo ''
 	@echo 'Main targets:'
 	@echo '  run          Run backend and frontend in Docker Compose (foreground, Ctrl+C to stop)'
+	@echo '  run-bg       Run backend and frontend in Docker Compose (background)'
 	@echo '  serve        Run backend in Docker, frontend with hot reload'
-	@echo '  test         Run backend tests in Docker Compose'
+	@echo '  test         Run backend tests locally with Maven (uses Testcontainers)'
 	@echo '  kill-webpack Kill webpack dev server process running on port 3000'
 
 run: ## Run backend and frontend in Docker Compose (foreground)
@@ -48,9 +49,13 @@ serve: _stop _build-backend ## Stop containers, run backend in Docker, frontend 
 	@echo ""
 	@cd frontend && npm install --silent && npm start
 
-test: ## Run backend tests in Docker Compose
-	@echo "Running backend tests in Docker Compose..."
-	$(DOCKER_COMPOSE) run --rm app mvn test
+test: ## Run backend tests with Maven (local)
+	@echo "Running backend tests with Maven..."
+	@echo ""
+	@echo "Note: Tests use Testcontainers for isolated MongoDB"
+	@echo "Docker must be running for test execution"
+	@echo ""
+	mvn test
 
 kill-webpack: ## Kill webpack dev server process
 	@echo "Killing webpack dev server..."
