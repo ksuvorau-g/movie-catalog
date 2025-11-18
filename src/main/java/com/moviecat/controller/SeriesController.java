@@ -71,6 +71,18 @@ public class SeriesController {
         return seriesService.updateSeriesWatchStatus(id, request.getWatchStatus());
     }
     
+    @PostMapping("/{id}/seasons/increase")
+    @Operation(summary = "Add season", description = "Append a new season in UNWATCHED status")
+    public SeriesResponse addSeason(@PathVariable String id) {
+        return seriesService.addSeason(id);
+    }
+    
+    @PostMapping("/{id}/seasons/decrease")
+    @Operation(summary = "Remove last season", description = "Remove the highest-numbered season if more than one exists")
+    public SeriesResponse removeLastSeason(@PathVariable String id) {
+        return seriesService.removeLastSeason(id);
+    }
+    
     @PatchMapping("/{id}/priority")
     @Operation(summary = "Update priority", description = "Update series recommendation priority")
     public SeriesResponse updatePriority(@PathVariable String id, @RequestBody PriorityRequest request) {

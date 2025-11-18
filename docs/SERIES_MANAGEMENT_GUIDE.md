@@ -7,6 +7,7 @@
 - **Season**: Individual season with a number and watch status (WATCHED/UNWATCHED)
 - **Series Watch Status**: Auto-calculated - WATCHED if all seasons watched, otherwise UNWATCHED
 - **Seasons can be**: Added during creation, added progressively, or fetched from external sources
+- **Season Invariant**: Backend always persists at least one season; if the client omits the array, season 1 (UNWATCHED) is inserted automatically
 
 ---
 
@@ -14,7 +15,7 @@
 
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
-| POST | `/api/series` | Create new series (with or without seasons) |
+| POST | `/api/series` | Create new series (can omit seasons; backend adds default season 1) |
 | GET | `/api/series` | List all series |
 | GET | `/api/series/{id}` | Get single series details |
 | PUT | `/api/series/{id}` | Update series (optionally replace seasons) |
@@ -50,12 +51,12 @@ curl -X POST http://localhost:8080/api/series \
   }'
 ```
 
-### 2. Create Series Without Seasons (Add Later)
+### 2. Create Series Without Explicit Seasons (Auto Default)
 
-**When to use**: You'll track seasons as you watch
+**When to use**: You don't care about enumerating seasons up front
 
 ```bash
-# Step 1: Create empty series
+# Step 1: Create series without a seasons array (backend adds season 1 / UNWATCHED)
 curl -X POST http://localhost:8080/api/series \
   -H "Content-Type: application/json" \
   -d '{
@@ -63,11 +64,13 @@ curl -X POST http://localhost:8080/api/series \
     "genres": ["Crime", "Drama"]
   }'
 
-# Step 2: Add season 1 when you start watching
-curl -X PATCH http://localhost:8080/api/series/507f1f77bcf86cd799439011/seasons/1/watch-status \
+# Step 2: Update the auto-created season or add additional ones as you watch
+curl -X PATCH http://localhost:8080/api/series/{id}/seasons/1/watch-status \
   -H "Content-Type: application/json" \
   -d '{"watchStatus": "UNWATCHED"}'
 ```
+
+**Note**: The response from step 1 already includes `seasons: [{"seasonNumber": 1, "watchStatus": "UNWATCHED"}]`. Additional PATCH calls can introduce season 2, 3, etc., whenever you are ready.
 
 ### 3. Mark Season as Watched (Progressive Tracking)
 
@@ -209,7 +212,7 @@ curl -X POST http://localhost:8080/api/series/{id}/refresh
       "seasonNumber": "integer (required)",
       "watchStatus": "WATCHED|UNWATCHED (required)"
     }
-  ] (optional),
+  ] (optional, but if omitted or empty the backend auto-adds season 1 with UNWATCHED status),
   "addedBy": "string (optional)",
   "priority": "integer (optional, default: 0)"
 }
@@ -260,14 +263,14 @@ curl -X POST http://localhost:8080/api/series/{id}/refresh
 ## Business Rules
 
 ### Season Management
-1. **Creation**: Seasons can be provided during series creation or added later
+1. **Creation**: Seasons can be provided during series creation or omitted; if the payload has no seasons (or an empty array) the backend inserts season 1 with UNWATCHED status so the series is never empty
 2. **Auto-Creation**: PATCH individual season creates it if it doesn't exist
 3. **No Order Enforcement**: Can mark any season without marking previous ones
 4. **Bulk Operations**: PATCH series watch-status affects ALL existing seasons
 5. **Replacement**: PUT with seasons array replaces all existing seasons
 
 ### Watch Status Calculation
-1. **Empty Seasons**: seriesWatchStatus = UNWATCHED
+1. **Default Season**: Because at least one season always exists, omitting seasons simply results in a single UNWATCHED season 1, keeping `seriesWatchStatus = UNWATCHED` until you update it
 2. **All Watched**: All seasons WATCHED → seriesWatchStatus = WATCHED
 3. **Any Unwatched**: Any season UNWATCHED → seriesWatchStatus = UNWATCHED
 4. **Auto-Recalculation**: Happens after every season change
@@ -495,7 +498,7 @@ async function addSeason(seriesId, seasonNumber) {
 
 ### Manual Testing Checklist
 - [ ] Create series with seasons
-- [ ] Create series without seasons
+- [ ] Create series without providing seasons (verify default season 1 is inserted)
 - [ ] Add season to existing series
 - [ ] Mark season as watched
 - [ ] Mark season as unwatched

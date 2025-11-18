@@ -240,7 +240,7 @@ const handleResultClick = async (result) => {
   setFormData(prev => ({
     ...prev,
     title: originalTitle,
-    link: tmdbUrl,  // Note: Field is named 'link' in the form, not 'linkDescription'
+    link: tmdbUrl,
     genres: genres,
     // For series, add number of seasons if available
     ...(formData.contentType === 'SERIES' && result.numberOfSeasons && {
@@ -520,7 +520,7 @@ When a search result is clicked:
 1. ✅ **Close the search popup immediately**
 2. ✅ **Populate title** with `original_title` (movies) or `original_name` (series)
 3. ✅ **Populate coverImage**: Download poster via `/api/images/download` endpoint
-4. ✅ **Populate linkDescription**: Build TMDB URL (`https://www.themoviedb.org/movie/{id}` or `https://www.themoviedb.org/tv/{id}`)
+4. ✅ **Populate link**: Build TMDB URL (`https://www.themoviedb.org/movie/{id}` or `https://www.themoviedb.org/tv/{id}`)
 5. ✅ **Populate genres**: Join genre array with commas
 6. ✅ **For series**: Populate `numberOfSeasons` field if available
 

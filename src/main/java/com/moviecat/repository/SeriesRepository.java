@@ -66,13 +66,13 @@ public interface SeriesRepository extends MongoRepository<Series, String> {
     List<Series> findByAddedBy(String addedBy);
     
     /**
-     * Find all series that have a link description URL.
+     * Find all series that have a link URL.
      * Used for season refresh scheduling.
      * 
-     * @return list of series with link description
+     * @return list of series with link
      */
-    @Query("{ 'linkDescription': { $exists: true, $ne: null, $ne: '' } }")
-    List<Series> findAllWithLinkDescription();
+    @Query("{ 'link': { $exists: true, $ne: null, $ne: '' } }")
+    List<Series> findAllWithLink();
     
     /**
      * Find series with unwatched seasons (seriesWatchStatus = UNWATCHED).

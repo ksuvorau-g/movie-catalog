@@ -5,6 +5,7 @@ const API_BASE_URL = '/api';
 
 function SeasonList({ seriesId, seasons, onSeasonUpdate }) {
   const [updating, setUpdating] = React.useState(null);
+  const [managingSeasons, setManagingSeasons] = React.useState(false);
 
   const handleSeasonToggle = async (seasonNumber, currentStatus) => {
     const newStatus = currentStatus === 'WATCHED' ? 'UNWATCHED' : 'WATCHED';
@@ -60,6 +61,44 @@ function SeasonList({ seriesId, seasons, onSeasonUpdate }) {
     }
   };
 
+  const handleAddSeason = async () => {
+    setManagingSeasons(true);
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/series/${seriesId}/seasons/increase`
+      );
+
+      if (onSeasonUpdate) {
+        onSeasonUpdate(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to add season:', error);
+      const message = error.response?.data?.message || 'Failed to add season. Please try again.';
+      alert(message);
+    } finally {
+      setManagingSeasons(false);
+    }
+  };
+
+  const handleRemoveSeason = async () => {
+    setManagingSeasons(true);
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/series/${seriesId}/seasons/decrease`
+      );
+
+      if (onSeasonUpdate) {
+        onSeasonUpdate(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to remove season:', error);
+      const message = error.response?.data?.message || 'Failed to remove season. Please try again.';
+      alert(message);
+    } finally {
+      setManagingSeasons(false);
+    }
+  };
+
   if (!seasons || seasons.length === 0) {
     return (
       <div className="season-list-empty">
@@ -86,6 +125,24 @@ function SeasonList({ seriesId, seasons, onSeasonUpdate }) {
           </div>
         </div>
         <div className="season-bulk-actions">
+          <div className="season-manage-buttons">
+            <button
+              className="season-manage-button add"
+              onClick={handleAddSeason}
+              disabled={managingSeasons}
+              title="Add season"
+            >
+              +
+            </button>
+            <button
+              className="season-manage-button remove"
+              onClick={handleRemoveSeason}
+              disabled={managingSeasons || totalCount <= 1}
+              title="Remove last season"
+            >
+              −
+            </button>
+          </div>
           <button 
             className="season-bulk-button"
             onClick={handleMarkAllWatched}

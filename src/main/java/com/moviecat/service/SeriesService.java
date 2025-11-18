@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -231,6 +232,65 @@ public class SeriesService {
         log.info("Series watch status updated successfully: {}", id);
         
         return toResponse(updatedSeries);
+    }
+    
+    /**
+     * Append a new season in UNWATCHED status with the next sequential season number.
+     *
+     * @param id series ID
+     * @return updated series
+     */
+    public SeriesResponse addSeason(String id) {
+        log.info("Adding new season for series {}", id);
+        Series series = seriesRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Series not found with id: " + id));
+        
+        List<Season> seasons = series.getSeasons();
+        if (seasons == null) {
+            seasons = new ArrayList<>();
+            series.setSeasons(seasons);
+        }
+        int nextSeasonNumber = seasons.stream()
+                .map(Season::getSeasonNumber)
+                .filter(num -> num != null)
+                .max(Integer::compareTo)
+                .orElse(0) + 1;
+        Season newSeason = Season.builder()
+                .seasonNumber(nextSeasonNumber)
+                .watchStatus(WatchStatus.UNWATCHED)
+                .build();
+        seasons.add(newSeason);
+        series.updateSeriesWatchStatus();
+        Series saved = seriesRepository.save(series);
+        log.info("Added season {} for series {}", nextSeasonNumber, id);
+        return toResponse(saved);
+    }
+    
+    /**
+     * Remove the highest-numbered season if more than one season exists.
+     *
+     * @param id series ID
+     * @return updated series
+     */
+    public SeriesResponse removeLastSeason(String id) {
+        log.info("Removing last season for series {}", id);
+        Series series = seriesRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Series not found with id: " + id));
+        List<Season> seasons = series.getSeasons();
+        if (seasons == null || seasons.isEmpty()) {
+            throw new IllegalStateException("Series does not have any seasons to remove");
+        }
+        if (seasons.size() == 1) {
+            throw new IllegalStateException("Series must contain at least one season");
+        }
+        Season lastSeason = seasons.stream()
+                .max(Comparator.comparingInt(season -> season.getSeasonNumber() != null ? season.getSeasonNumber() : 0))
+                .orElseThrow(() -> new IllegalStateException("Unable to determine last season"));
+        seasons.remove(lastSeason);
+        series.updateSeriesWatchStatus();
+        Series saved = seriesRepository.save(series);
+        log.info("Removed season {} for series {}", lastSeason.getSeasonNumber(), id);
+        return toResponse(saved);
     }
     
     /**

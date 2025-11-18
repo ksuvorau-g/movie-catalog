@@ -81,9 +81,9 @@ Critical indexes defined with `@Indexed` in domain models:
 
 ### External API Integration
 - `ExternalApiService` uses Spring WebFlux `WebClient` (non-blocking)
-- Scrapes season data from `linkDescription` URLs (IMDB/Kinopoisk)
+- Scrapes season data from `link` URLs
 - Weekly scheduled refresh via `@Scheduled(cron = "${scheduler.cron.season-check}")` - Mondays midnight
-- Only processes series with `linkDescription` set
+- Only processes series with `link` set
 
 ### Image Management System
 - `ImageService` downloads images from URLs, stores locally with UUID filenames

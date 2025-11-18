@@ -37,6 +37,14 @@ const RecommendationsBlock = ({ addedBy }) => {
     return '⭐'.repeat(Math.min(priority, 5));
   };
 
+  const getCoverImageUrl = (coverImage) => {
+    if (!coverImage) return null;
+    if (coverImage.startsWith('http://') || coverImage.startsWith('https://')) {
+      return coverImage;
+    }
+    return `${API_BASE_URL}/images/${coverImage}`;
+  };
+
   if (loading) {
     return (
       <div className="recommendations-block">
@@ -77,37 +85,40 @@ const RecommendationsBlock = ({ addedBy }) => {
         </div>
       ) : (
         <div className="recommendations-list">
-          {recommendations.map((item) => (
-            <a
-              key={item.id}
-              href={item.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="recommendation-card"
-              title={item.comment || item.title}
-            >
-              {item.coverImage && (
-                <img
-                  src={item.coverImage}
-                  alt={item.title}
-                  className="recommendation-image"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
-                />
-              )}
-              <div className="recommendation-type">
-                {item.contentType === 'MOVIE' ? '🎬 Movie' : '📺 Series'}
-                {item.hasNewSeasons && ' 🆕'}
-              </div>
-              <div className="recommendation-title">{item.title}</div>
-              {item.priority > 0 && (
-                <div className="recommendation-priority">
-                  {getPriorityEmoji(item.priority)}
+          {recommendations.map((item) => {
+            const coverImageUrl = getCoverImageUrl(item.coverImage);
+            return (
+              <a
+                key={item.id}
+                href={item.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="recommendation-card"
+                title={item.comment || item.title}
+              >
+                {coverImageUrl && (
+                  <img
+                    src={coverImageUrl}
+                    alt={item.title}
+                    className="recommendation-image"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                )}
+                <div className="recommendation-type">
+                  {item.contentType === 'MOVIE' ? '🎬 Movie' : '📺 Series'}
+                  {item.hasNewSeasons && ' 🆕'}
                 </div>
-              )}
-            </a>
-          ))}
+                <div className="recommendation-title">{item.title}</div>
+                {item.priority > 0 && (
+                  <div className="recommendation-priority">
+                    {getPriorityEmoji(item.priority)}
+                  </div>
+                )}
+              </a>
+            );
+          })}
         </div>
       )}
     </div>

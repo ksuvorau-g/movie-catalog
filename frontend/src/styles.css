@@ -760,6 +760,35 @@ body {
   margin-top: 8px;
 }
 
+.season-manage-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.season-manage-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 5px;
+  border: 1px solid #d1d5db;
+  background: white;
+  font-size: 18px;
+  font-weight: 600;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.season-manage-button:hover:not(:disabled) {
+  background: #edf2ff;
+  border-color: #667eea;
+  color: #4338ca;
+}
+
+.season-manage-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .season-bulk-button {
   flex: 1;
   padding: 6px 10px;

@@ -66,9 +66,9 @@ This document tracks the implementation status of features from the raw requirem
 ### External API Integration (Critical Gap)
 
 #### Backend - External API Services
-- [ ] **Create ExternalApiService** - Implement service to fetch season information from external sources (IMDB, Kinopoisk) using WebClient. Include parsing logic for both sources and retry logic for failures. Web scraping from linkDescription URLs.
+- [ ] **Create ExternalApiService** - Implement service to fetch season information from external sources (IMDB, Kinopoisk) using WebClient. Include parsing logic for both sources and retry logic for failures. Web scraping from link URLs.
 - [ ] **Create SeasonRefreshService** - Implement service to update series with latest season data from external APIs. Detect new seasons by comparing totalAvailableSeasons. Create notifications for series with at least 1 watched season. Set hasNewSeasons flag. Handle refresh failures.
-- [ ] **Create SeasonRefreshScheduler** - Implement @Scheduled task to run weekly (Monday midnight) that triggers SeasonRefreshService for all series with linkDescription set. Configure cron expression: scheduler.cron.season-check=0 0 0 * * MON in application.properties.
+- [ ] **Create SeasonRefreshScheduler** - Implement @Scheduled task to run weekly (Monday midnight) that triggers SeasonRefreshService for all series with link set. Configure cron expression: scheduler.cron.season-check=0 0 0 * * MON in application.properties.
 - [ ] **Manual season refresh endpoint** - POST /api/series/{id}/refresh - Implement actual external API call in SeriesService.refreshSeasons() (currently placeholder). Should fetch latest season data from link URL and update totalAvailableSeasons, seriesStatus, hasNewSeasons.
 - [ ] **Notification creation logic** - Implement logic in SeasonRefreshService to create notifications only for series where at least one season has watchStatus=WATCHED when new seasons are detected. Use NotificationService.createNotification().
 
@@ -103,7 +103,7 @@ This document tracks the implementation status of features from the raw requirem
 - [ ] **Series watch status recalculation trigger** - Verify that series.updateSeriesWatchStatus() is called after: season creation, season update, bulk season update, season deletion. Add unit tests for all scenarios.
 
 ### Repository Layer Enhancements
-- [ ] **Custom repository queries** - Add custom queries to SeriesRepository: findByHasNewSeasons(boolean), findBySeriesStatus(SeriesStatus), findByLinkDescriptionIsNotNull() for scheduler. Add to MovieRepository: findByPriorityGreaterThan(int).
+- [ ] **Custom repository queries** - Add custom queries to SeriesRepository: findByHasNewSeasons(boolean), findBySeriesStatus(SeriesStatus), findByLinkIsNotNull() for scheduler. Add to MovieRepository: findByPriorityGreaterThan(int).
 - [ ] **Case-insensitive duplicate detection** - Verify MovieRepository.findByTitleIgnoreCase() and SeriesRepository.findByTitleIgnoreCase() exist and are used in duplicate detection logic.
 
 ### Documentation & Testing
@@ -117,12 +117,12 @@ This document tracks the implementation status of features from the raw requirem
 
 ### Phase 1: External API Foundation (High Priority)
 1. Configure WebClient for external APIs with timeout and retry
-2. Create ExternalApiService with IMDB/Kinopoisk web scraping (linkDescription URLs)
+2. Create ExternalApiService with IMDB/Kinopoisk web scraping (link URLs)
 3. Implement exception handling for external API failures (custom exceptions + global handler)
 4. Create SeasonRefreshService with new season detection (compare totalAvailableSeasons)
 
 ### Phase 2: Automation (High Priority)
-5. Create SeasonRefreshScheduler for weekly checks (Mondays midnight, process series with linkDescription)
+5. Create SeasonRefreshScheduler for weekly checks (Mondays midnight, process series with link)
 6. Implement notification creation logic (only for series with ≥1 watched season)
 7. Complete manual season refresh endpoint (POST /api/series/{id}/refresh with actual scraping)
 8. Add retry logic for failed refreshes (exponential backoff, log failures)
@@ -162,7 +162,7 @@ This document tracks the implementation status of features from the raw requirem
 
 ### Architecture Gaps
 The backend architecture and core CRUD operations are solid and complete. The primary feature gap is the **entire external API integration system** for automated season tracking:
-- No web scraping implementation for IMDB/Kinopoisk (linkDescription URLs)
+- No web scraping implementation for IMDB/Kinopoisk (link URLs)
 - No scheduled background jobs for season checking (SeasonRefreshScheduler)
 - No external API service layer (ExternalApiService)
 - Manual refresh endpoint exists but has placeholder implementation only (SeriesService.refreshSeasons())
@@ -204,7 +204,7 @@ Limited test coverage:
 Missing custom queries for filtering:
 - findByHasNewSeasons(boolean)
 - findBySeriesStatus(SeriesStatus)
-- findByLinkDescriptionIsNotNull()
+- findByLinkIsNotNull()
 - findByPriorityGreaterThan(int)
 
 ```

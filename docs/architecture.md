@@ -158,7 +158,7 @@ Movie Catalog is a REST API service built with Spring Boot that manages a person
   - comment: String (optional)
   - coverImage: String (optional)
   - genres: List<String> (optional)
-  - seasons: List<Season> (collection of seasons)
+  - seasons: List<Season> (collection of seasons, never empty; backend auto-creates season 1/UNWATCHED if client omits the list)
   - seriesWatchStatus: WatchStatus enum (calculated automatically)
   - totalAvailableSeasons: Integer (fetched from external source)
   - hasNewSeasons: Boolean (automatic)
@@ -703,7 +703,7 @@ curl -X PUT http://localhost:8080/api/series/{id} \
 ### Watch Status Calculation Rules
 
 **Series Watch Status Logic**:
-1. If `seasons` list is empty → `seriesWatchStatus = UNWATCHED`
+1. Service enforces at least one season; if the client omits `seasons`, season 1 is inserted with `UNWATCHED`
 2. If all seasons have `watchStatus = WATCHED` → `seriesWatchStatus = WATCHED`
 3. If any season has `watchStatus = UNWATCHED` → `seriesWatchStatus = UNWATCHED`
 
