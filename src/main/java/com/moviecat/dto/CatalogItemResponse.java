@@ -22,6 +22,7 @@ public class CatalogItemResponse {
     private String id;
     private ContentType contentType;
     private String title;
+    private String link;
     private String coverImage;
     private String comment;
     private List<String> genres;
@@ -29,6 +30,7 @@ public class CatalogItemResponse {
     private String addedBy;
     private LocalDateTime dateAdded;
     private Integer priority;
+    private Integer tmdbId;
     
     // Movie-specific
     private Integer length;

@@ -197,7 +197,7 @@ function CatalogList({ items, deletedIds = new Set(), onDelete, onMarkAsWatched,
                     <span className="detail-value">{item.totalAvailableSeasons}</span>
                   </div>
                 )}
-                {item.hasNewSeasons && (
+                {item.hasNewSeasons && item.watchStatus === 'UNWATCHED' && (
                   <div className="new-season-badge">New Season Available!</div>
                 )}
                 {item.seasons && item.seasons.length > 0 && (
@@ -223,6 +223,7 @@ function CatalogList({ items, deletedIds = new Set(), onDelete, onMarkAsWatched,
                       <SeasonList
                         seriesId={item.id}
                         seasons={item.seasons}
+                        tmdbLink={item.link}
                         onSeasonUpdate={(updatedData) => handleSeasonUpdate(item.id, updatedData)}
                       />
                     )}

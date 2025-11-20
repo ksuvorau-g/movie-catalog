@@ -108,7 +108,11 @@ const RecommendationsBlock = ({ addedBy }) => {
                 )}
                 <div className="recommendation-type">
                   {item.contentType === 'MOVIE' ? '🎬 Movie' : '📺 Series'}
-                  {item.hasNewSeasons && ' 🆕'}
+                  {item.hasNewSeasons && (
+                    <span className="recommendation-new-season-badge">
+                      New Seasons
+                    </span>
+                  )}
                 </div>
                 <div className="recommendation-title">{item.title}</div>
                 {item.priority > 0 && (

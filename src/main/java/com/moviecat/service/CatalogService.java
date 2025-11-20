@@ -197,6 +197,7 @@ public class CatalogService {
                 .id(movie.getId())
                 .contentType(ContentType.MOVIE)
                 .title(movie.getTitle())
+                .link(movie.getLink())
                 .coverImage(movie.getCoverImage())
                 .comment(movie.getComment())
                 .genres(movie.getGenres())
@@ -204,6 +205,7 @@ public class CatalogService {
                 .addedBy(movie.getAddedBy())
                 .dateAdded(movie.getDateAdded())
                 .priority(movie.getPriority())
+                .tmdbId(movie.getTmdbId())
                 .length(movie.getLength())
                 .build();
     }
@@ -216,6 +218,7 @@ public class CatalogService {
                 .id(series.getId())
                 .contentType(ContentType.SERIES)
                 .title(series.getTitle())
+                .link(series.getLink())
                 .coverImage(series.getCoverImage())
                 .comment(series.getComment())
                 .genres(series.getGenres())
@@ -223,6 +226,7 @@ public class CatalogService {
                 .addedBy(series.getAddedBy())
                 .dateAdded(series.getDateAdded())
                 .priority(series.getPriority())
+                .tmdbId(series.getTmdbId())
                 .seasons(series.getSeasons())
                 .hasNewSeasons(series.getHasNewSeasons())
                 .seriesStatus(series.getSeriesStatus() != null ? series.getSeriesStatus().toString() : null)

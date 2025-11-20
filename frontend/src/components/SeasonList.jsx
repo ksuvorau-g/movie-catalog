@@ -3,9 +3,18 @@ import axios from 'axios';
 
 const API_BASE_URL = '/api';
 
-function SeasonList({ seriesId, seasons, onSeasonUpdate }) {
+function SeasonList({ seriesId, seasons, onSeasonUpdate, tmdbLink }) {
   const [updating, setUpdating] = React.useState(null);
   const [managingSeasons, setManagingSeasons] = React.useState(false);
+  const [syncingSeasons, setSyncingSeasons] = React.useState(false);
+
+  const hasTmdbLink = React.useMemo(() => {
+    if (!tmdbLink) {
+      return false;
+    }
+    const normalized = tmdbLink.toLowerCase();
+    return normalized.includes('themoviedb.org/tv') || normalized.includes('tmdb.org/tv');
+  }, [tmdbLink]);
 
   const handleSeasonToggle = async (seasonNumber, currentStatus) => {
     const newStatus = currentStatus === 'WATCHED' ? 'UNWATCHED' : 'WATCHED';
@@ -96,6 +105,25 @@ function SeasonList({ seriesId, seasons, onSeasonUpdate }) {
       alert(message);
     } finally {
       setManagingSeasons(false);
+    }
+  };
+
+  const handleFetchSeasons = async () => {
+    setSyncingSeasons(true);
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/series/${seriesId}/refresh`
+      );
+
+      if (onSeasonUpdate) {
+        onSeasonUpdate(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch seasons from TMDB:', error);
+      const message = error.response?.data?.message || 'Failed to fetch seasons from TMDB. Please try again.';
+      alert(message);
+    } finally {
+      setSyncingSeasons(false);
     }
   };
 
@@ -191,6 +219,19 @@ function SeasonList({ seriesId, seasons, onSeasonUpdate }) {
           </div>
         ))}
       </div>
+
+      {hasTmdbLink && (
+        <div className="season-sync-panel">
+          <button
+            className="season-sync-button"
+            onClick={handleFetchSeasons}
+            disabled={syncingSeasons}
+            title="Sync seasons with TMDB"
+          >
+            {syncingSeasons ? 'Fetching…' : 'Fetch Seasons'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

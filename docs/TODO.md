@@ -3,7 +3,7 @@
 ## Overview
 This document tracks the implementation status of features from the raw requirements document.
 
-**Status:** 22 of 49 features completed (Updated: Nov 14, 2025)
+**Status:** 26 of 49 features completed (Updated: Nov 19, 2025)
 
 **Summary:**
 - ✅ **Core CRUD APIs**: Complete for movies and series
@@ -14,7 +14,7 @@ This document tracks the implementation status of features from the raw requirem
 - ✅ **Series Season Management**: Create with seasons, update seasons, auto-status calculation
 - ❌ **External API Integration**: Not implemented (critical gap)
 - ❌ **Validation & Error Handling**: Minimal implementation
-- ❌ **Frontend Season Management**: Not implemented
+- ⚠️ **Frontend Season Management**: Season tracking + bulk operations shipped, but notification UI and manual refresh controls still missing
 - ❌ **Testing**: Minimal coverage
 
 ---
@@ -74,19 +74,19 @@ This document tracks the implementation status of features from the raw requirem
 
 #### Configuration
 - [ ] **Configure WebClient for external APIs** - Create WebClientConfig with timeout settings, connection pooling, and retry strategies for IMDB/Kinopoisk web scraping via WebClient (non-blocking).
-- [ ] **Configure scheduler settings** - Verify scheduler.cron.season-check property exists in application.properties. Enable scheduling with @EnableScheduling annotation in main application class or config.
+- [x] **Configure scheduler settings** - Already configured via `scheduler.cron.season-check` in `src/main/resources/application.properties` and `@EnableScheduling` on `MovieCatalogApplication`.
 - [ ] **Exception handling for external API** - Create custom exceptions (ExternalApiException, SeasonRefreshException) and add handling in GlobalExceptionHandler (@RestControllerAdvice) for external API failures with appropriate error responses.
 - [ ] **Retry logic for failed refresh** - Implement retry mechanism in ExternalApiService that retries failed requests. Consider using Spring Retry or manual retry with exponential backoff for external source unavailability.
 
 ### Frontend Features
 
 #### UI Components
-- [ ] **Frontend - Recommendation UI** - Create UI component to display and fetch recommendations via GET /api/recommendations. Show "Get Recommendation" button and display recommended movie/series with details (title, cover, comment, type, priority). Handle "No unwatched content" error.
+- [x] **Frontend - Recommendation UI** - Implemented in `frontend/src/components/RecommendationsBlock.jsx` (rendered from `App.jsx`) with loading/error states around GET `/api/recommendations`.
 - [ ] **Frontend - Notification display** - Create UI component to display active notifications about new seasons via GET /api/notifications. Show notification list with series title, message, new season count. Allow dismissal via DELETE /api/notifications/{id}. Show badge/count of unread notifications.
-- [ ] **Frontend - Series season management** - Add SeasonList component to mark individual seasons as watched/unwatched via PATCH /api/series/{id}/seasons/{seasonNumber}/watch-status. Display season list with watch status toggles/buttons. Show watch progress (X of Y seasons watched).
+- [x] **Frontend - Series season management** - `frontend/src/components/SeasonList.jsx` plus `CatalogList.jsx` expand/collapse affordances already allow per-season PATCH operations and progress display.
 - [ ] **Frontend - Manual season refresh button** - Add "Refresh Seasons" button to series details to manually trigger season refresh via POST /api/series/{id}/refresh. Show loading state during refresh. Handle errors (no link, API failure).
-- [ ] **Frontend - Add seasons during series creation** - Update AddMovieModal (or create AddSeriesModal) to support adding initial seasons array when creating a series. Include season number and watch status inputs. Allow adding multiple seasons dynamically.
-- [x] **Frontend - Bulk season operations** - Add UI controls to mark entire series as watched/unwatched via PATCH /api/series/{id}/watch-status. Implemented in SeasonList.jsx with "Mark All Watched"/"Mark All Unwatched" buttons, disabled state logic, and progress tracking.
+- [x] **Frontend - Add seasons during series creation** - The series branch of `frontend/src/components/AddMovieModal.jsx` requires number of seasons and seeds the POST `/api/series` body with an initial seasons array.
+- [x] **Frontend - Bulk season operations** - Existing SeasonList controls include "Mark All Watched/Unwatched" buttons wired to PATCH `/api/series/{id}/watch-status`.
 
 ---
 
@@ -100,11 +100,12 @@ This document tracks the implementation status of features from the raw requirem
 ### Data Consistency & Business Rules
 - [ ] **Prevent season number duplicates** - Add validation in SeriesService to prevent adding duplicate season numbers to the same series. When using PATCH to add season, check if seasonNumber already exists.
 - [ ] **Cascade delete** - When deleting a series, ensure associated notifications are also deleted or marked as inactive. Add cascade logic to SeriesService.deleteSeries().
-- [ ] **Series watch status recalculation trigger** - Verify that series.updateSeriesWatchStatus() is called after: season creation, season update, bulk season update, season deletion. Add unit tests for all scenarios.
+- [x] **Series watch status recalculation trigger** - `SeriesService` already calls `updateSeriesWatchStatus()` in `addSeason`, `removeLastSeason`, `updateSeasonWatchStatus`, and `updateSeriesWatchStatus` to keep state consistent (unit tests still missing).
 
 ### Repository Layer Enhancements
-- [ ] **Custom repository queries** - Add custom queries to SeriesRepository: findByHasNewSeasons(boolean), findBySeriesStatus(SeriesStatus), findByLinkIsNotNull() for scheduler. Add to MovieRepository: findByPriorityGreaterThan(int).
-- [ ] **Case-insensitive duplicate detection** - Verify MovieRepository.findByTitleIgnoreCase() and SeriesRepository.findByTitleIgnoreCase() exist and are used in duplicate detection logic.
+- [x] **SeriesRepository custom queries** - `SeriesRepository.java` already exposes `findByHasNewSeasons`, `findBySeriesStatus`, and `findAllWithLink()` for scheduler-driven refresh.
+- [ ] **Movie priority query** - Add `findByPriorityGreaterThan(int)` to `MovieRepository` to support weighting/reporting use cases.
+- [x] **Case-insensitive duplicate detection** - Both repositories include `findByTitleIgnoreCase()` and the add service methods log duplicate warnings before insert.
 
 ### Documentation & Testing
 - [ ] **API error response documentation** - Document all possible error responses in Swagger annotations (@ApiResponse). Include HTTP status codes, error message formats, validation error structures.
@@ -134,15 +135,15 @@ This document tracks the implementation status of features from the raw requirem
 12. Implement cascade delete for series + notifications
 
 ### Phase 4: Frontend Season Management (Medium Priority)
-13. Create SeasonList component for season tracking
-14. Add season inputs to series creation form
-15. Implement bulk season operations UI
+13. ✅ Create SeasonList component for season tracking (SeasonList.jsx)
+14. ✅ Add season inputs to series creation form (AddMovieModal.jsx series flow)
+15. ✅ Implement bulk season operations UI (SeasonList bulk buttons)
 16. Add manual season refresh button with loading state
 
 ### Phase 5: Frontend Notifications & Recommendations (Medium Priority)
 17. Create notification display component with badge
 18. Add notification dismissal functionality
-19. Create recommendation UI component
+19. ✅ Create recommendation UI component (RecommendationsBlock)
 20. Handle recommendation edge cases (no unwatched content)
 
 ### Phase 6: Testing & Documentation (Medium Priority)
@@ -184,13 +185,10 @@ Currently missing comprehensive validation and error handling:
   - Total available seasons count (fetched from IMDB/Kinopoisk)
 
 ### Frontend Status
-The frontend has basic catalog display with filtering and CRUD operations, but lacks:
-- Recommendation feature display (GET /api/recommendations UI)
+The frontend now includes catalog filtering, `RecommendationsBlock`, `SeasonList` management with bulk toggles, and AddMovieModal support for seeding series seasons. Remaining gaps:
 - Notification system UI (display, badge, dismissal)
-- Season-level watch status management (SeasonList component)
-- External data refresh triggers (manual refresh button)
-- Series creation with initial seasons (season inputs in form)
-- Bulk season operations UI (mark all watched/unwatched)
+- Manual season refresh trigger in the UI
+- Surface failures/responses from the placeholder POST `/api/series/{id}/refresh`
 
 ### Testing Status
 Limited test coverage:
@@ -201,10 +199,7 @@ Limited test coverage:
 - No tests for duplicate detection
 
 ### Repository Layer
-Missing custom queries for filtering:
-- findByHasNewSeasons(boolean)
-- findBySeriesStatus(SeriesStatus)
-- findByLinkIsNotNull()
-- findByPriorityGreaterThan(int)
+SeriesRepository already contains `findByHasNewSeasons`, `findBySeriesStatus`, and `findAllWithLink()`. Remaining gap:
+- `findByPriorityGreaterThan(int)` on MovieRepository for priority-based filtering.
 
 ```

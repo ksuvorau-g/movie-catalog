@@ -126,6 +126,7 @@ public class Series {
     /**
      * Calculate and update series watch status based on seasons.
      * Series is watched only if all seasons are watched.
+     * Also resets hasNewSeasons flag to false when all seasons are watched.
      */
     public void updateSeriesWatchStatus() {
         if (seasons == null || seasons.isEmpty()) {
@@ -137,5 +138,10 @@ public class Series {
                 .allMatch(season -> season.getWatchStatus() == WatchStatus.WATCHED);
         
         this.seriesWatchStatus = allWatched ? WatchStatus.WATCHED : WatchStatus.UNWATCHED;
+        
+        // Reset hasNewSeasons flag when all seasons are watched
+        if (allWatched) {
+            this.hasNewSeasons = false;
+        }
     }
 }

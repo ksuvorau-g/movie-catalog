@@ -2,8 +2,10 @@ package com.moviecat.service;
 
 import com.moviecat.dto.SeriesRequest;
 import com.moviecat.dto.SeriesResponse;
+import com.moviecat.dto.tmdb.TmdbSeriesDetails;
 import com.moviecat.model.Season;
 import com.moviecat.model.Series;
+import com.moviecat.model.SeriesStatus;
 import com.moviecat.model.WatchStatus;
 import com.moviecat.repository.SeriesRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,8 +15,13 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Service for TV series-related operations.
@@ -24,7 +31,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SeriesService {
     
+    private static final Pattern TMDB_TV_ID_PATTERN = Pattern.compile("/tv/(\\d+)");
+
     private final SeriesRepository seriesRepository;
+    private final TmdbApiService tmdbApiService;
     
     /**
      * Add a new TV series to the catalog.
@@ -328,17 +338,98 @@ public class SeriesService {
         Series series = seriesRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Series not found with id: " + id));
         
-        if (series.getLink() == null || series.getLink().isEmpty()) {
-            throw new RuntimeException("Series does not have a link URL for season refresh");
+        Integer tmdbId = resolveTmdbId(series);
+        if (tmdbId == null) {
+            throw new RuntimeException("Series requires a valid TMDB link or ID to refresh seasons");
         }
-        
-        // TODO: Implement actual external API call to fetch season information
-        // For now, just update the last check time
+
+        TmdbSeriesDetails details = tmdbApiService.getSeriesDetails(tmdbId);
+        int targetSeasonCount = normalizeSeasonCount(details.getNumberOfSeasons());
+
+        List<Season> seasons = ensureSeasonList(series);
+        int previousMaxSeason = seasons.stream()
+                .map(Season::getSeasonNumber)
+                .filter(Objects::nonNull)
+                .max(Integer::compareTo)
+                .orElse(0);
+
+        boolean removedSeasons = seasons.removeIf(season ->
+                season.getSeasonNumber() != null && season.getSeasonNumber() > targetSeasonCount);
+
+        Set<Integer> existingNumbers = seasons.stream()
+                .map(Season::getSeasonNumber)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(HashSet::new));
+        boolean addedSeasons = false;
+        for (int seasonNumber = 1; seasonNumber <= targetSeasonCount; seasonNumber++) {
+            if (!existingNumbers.contains(seasonNumber)) {
+                seasons.add(Season.builder()
+                        .seasonNumber(seasonNumber)
+                        .watchStatus(WatchStatus.UNWATCHED)
+                        .build());
+                addedSeasons = true;
+            }
+        }
+
+        seasons.sort(Comparator.comparing(Season::getSeasonNumber, Comparator.nullsLast(Integer::compareTo)));
+
+        boolean newSeasonsDetected = targetSeasonCount > previousMaxSeason;
+        series.setHasNewSeasons(newSeasonsDetected);
+        series.setTotalAvailableSeasons(targetSeasonCount);
+        series.setSeriesStatus(mapSeriesStatus(details.getStatus()));
         series.setLastSeasonCheck(LocalDateTime.now());
+        if (series.getTmdbId() == null) {
+            series.setTmdbId(tmdbId);
+        }
+        series.updateSeriesWatchStatus();
         Series updatedSeries = seriesRepository.save(series);
-        
-        log.info("Season refresh completed for series: {}", id);
+
+        log.info("Season refresh completed for series: {}. Added missing seasons: {}, removed extras: {}",
+                id, addedSeasons, removedSeasons);
         return toResponse(updatedSeries);
+    }
+
+    private List<Season> ensureSeasonList(Series series) {
+        if (series.getSeasons() == null) {
+            series.setSeasons(new ArrayList<>());
+        }
+        return series.getSeasons();
+    }
+
+    private Integer resolveTmdbId(Series series) {
+        if (series.getTmdbId() != null) {
+            return series.getTmdbId();
+        }
+        if (series.getLink() == null) {
+            return null;
+        }
+        Matcher matcher = TMDB_TV_ID_PATTERN.matcher(series.getLink());
+        if (matcher.find()) {
+            try {
+                return Integer.parseInt(matcher.group(1));
+            } catch (NumberFormatException ex) {
+                log.warn("Failed to parse TMDB ID from link {}", series.getLink(), ex);
+            }
+        }
+        return null;
+    }
+
+    private int normalizeSeasonCount(Integer numberOfSeasons) {
+        if (numberOfSeasons == null || numberOfSeasons < 1) {
+            return 1;
+        }
+        return numberOfSeasons;
+    }
+
+    private SeriesStatus mapSeriesStatus(String tmdbStatus) {
+        if (tmdbStatus == null) {
+            return null;
+        }
+        return switch (tmdbStatus.toLowerCase()) {
+            case "ended", "canceled", "cancelled" -> SeriesStatus.COMPLETE;
+            case "returning series", "in production", "planned" -> SeriesStatus.ONGOING;
+            default -> null;
+        };
     }
     
     /**
