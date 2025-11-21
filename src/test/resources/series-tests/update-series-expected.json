@@ -1,0 +1,21 @@
+{
+  "id": "${series.id}",
+  "title": "Game of Thrones - Updated",
+  "link": "https://example.com/got-updated",
+  "coverImage": "/api/images/got-new",
+  "comment": "Updated: Epic fantasy series with dragons",
+  "genres": ["Fantasy", "Drama", "Adventure", "Action"],
+  "seasons": [
+    {"seasonNumber": 1, "watchStatus": "UNWATCHED"},
+    {"seasonNumber": 2, "watchStatus": "UNWATCHED"}
+  ],
+  "seriesWatchStatus": "UNWATCHED",
+  "totalAvailableSeasons": 8,
+  "hasNewSeasons": true,
+  "seriesStatus": "COMPLETE",
+  "addedBy": "UpdatedUser",
+  "dateAdded": "${series.dateAdded}",
+  "lastSeasonCheck": null,
+  "priority": 20,
+  "tmdbId": 1399
+}

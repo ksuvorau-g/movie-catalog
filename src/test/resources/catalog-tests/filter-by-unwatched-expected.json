@@ -1,0 +1,43 @@
+[
+  {
+    "id": "${series1.id}",
+    "contentType": "SERIES",
+    "title": "Breaking Bad",
+    "link": "https://example.com/breaking-bad",
+    "coverImage": "/api/images/image2",
+    "comment": "Chemistry teacher turns into drug kingpin",
+    "genres": ["Crime", "Drama", "Thriller"],
+    "watchStatus": "UNWATCHED",
+    "addedBy": "Bob",
+    "dateAdded": "${series1.dateAdded}",
+    "priority": 10,
+    "tmdbId": 1396,
+    "length": null,
+    "seasons": [
+      {"seasonNumber": 1, "watchStatus": "WATCHED"},
+      {"seasonNumber": 2, "watchStatus": "UNWATCHED"}
+    ],
+    "hasNewSeasons": true,
+    "seriesStatus": "COMPLETE",
+    "totalAvailableSeasons": 5
+  },
+  {
+    "id": "${movie1.id}",
+    "contentType": "MOVIE",
+    "title": "Inception",
+    "link": "https://example.com/inception",
+    "coverImage": "/api/images/image1",
+    "comment": "Mind-bending thriller about dreams within dreams",
+    "genres": ["Sci-Fi", "Thriller", "Action"],
+    "watchStatus": "UNWATCHED",
+    "addedBy": "Alice",
+    "dateAdded": "${movie1.dateAdded}",
+    "priority": 5,
+    "tmdbId": 27205,
+    "length": 148,
+    "seasons": null,
+    "hasNewSeasons": null,
+    "seriesStatus": null,
+    "totalAvailableSeasons": null
+  }
+]

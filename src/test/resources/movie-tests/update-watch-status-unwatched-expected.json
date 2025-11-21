@@ -1,0 +1,14 @@
+{
+  "id": "${movie.id}",
+  "title": "The Godfather",
+  "link": "https://example.com/godfather",
+  "coverImage": "/api/images/godfather",
+  "comment": "An offer you can't refuse",
+  "length": 175,
+  "genres": ["Crime", "Drama"],
+  "watchStatus": "UNWATCHED",
+  "addedBy": "TestUser",
+  "dateAdded": "${movie.dateAdded}",
+  "priority": 5,
+  "tmdbId": 238
+}

@@ -1,0 +1,40 @@
+[
+  {
+    "id": "${movie1.id}",
+    "contentType": "MOVIE",
+    "title": "Inception",
+    "link": "https://example.com/inception",
+    "coverImage": "/api/images/image1",
+    "comment": "Mind-bending thriller about dreams within dreams",
+    "genres": ["Sci-Fi", "Thriller", "Action"],
+    "watchStatus": "UNWATCHED",
+    "addedBy": "Alice",
+    "dateAdded": "${movie1.dateAdded}",
+    "priority": 5,
+    "tmdbId": 27205,
+    "length": 148,
+    "seasons": null,
+    "hasNewSeasons": null,
+    "seriesStatus": null,
+    "totalAvailableSeasons": null
+  },
+  {
+    "id": "${movie2.id}",
+    "contentType": "MOVIE",
+    "title": "The Matrix",
+    "link": "https://example.com/matrix",
+    "coverImage": "/api/images/image3",
+    "comment": "Reality is not what it seems",
+    "genres": ["Sci-Fi", "Action"],
+    "watchStatus": "WATCHED",
+    "addedBy": "Alice",
+    "dateAdded": "${movie2.dateAdded}",
+    "priority": 0,
+    "tmdbId": 603,
+    "length": 136,
+    "seasons": null,
+    "hasNewSeasons": null,
+    "seriesStatus": null,
+    "totalAvailableSeasons": null
+  }
+]

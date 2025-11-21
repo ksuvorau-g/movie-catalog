@@ -1,0 +1,23 @@
+{
+  "id": "${series.id}",
+  "title": "Minimal Series",
+  "link": null,
+  "coverImage": null,
+  "comment": null,
+  "genres": null,
+  "seasons": [
+    {
+      "seasonNumber": 1,
+      "watchStatus": "UNWATCHED"
+    }
+  ],
+  "seriesWatchStatus": "UNWATCHED",
+  "totalAvailableSeasons": null,
+  "hasNewSeasons": false,
+  "seriesStatus": null,
+  "addedBy": "TestUser",
+  "dateAdded": "${series.dateAdded}",
+  "lastSeasonCheck": null,
+  "priority": 0,
+  "tmdbId": null
+}

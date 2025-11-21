@@ -1,0 +1,21 @@
+{
+  "id": "${series.id}",
+  "title": "Stranger Things",
+  "link": "https://example.com/stranger-things",
+  "coverImage": "/api/images/stranger-things",
+  "comment": "Sci-fi horror set in the 1980s",
+  "genres": ["Sci-Fi", "Horror", "Drama"],
+  "seasons": [
+    {"seasonNumber": 1, "watchStatus": "UNWATCHED"},
+    {"seasonNumber": 2, "watchStatus": "UNWATCHED"}
+  ],
+  "seriesWatchStatus": "UNWATCHED",
+  "totalAvailableSeasons": null,
+  "hasNewSeasons": false,
+  "seriesStatus": null,
+  "addedBy": "TestUser",
+  "dateAdded": "${series.dateAdded}",
+  "lastSeasonCheck": null,
+  "priority": 5,
+  "tmdbId": null
+}

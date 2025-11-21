@@ -1,0 +1,21 @@
+{
+  "id": "${series.id}",
+  "title": "Game of Thrones",
+  "link": "https://example.com/got",
+  "coverImage": "/api/images/got",
+  "comment": "Epic fantasy series",
+  "genres": ["Fantasy", "Drama", "Adventure"],
+  "seasons": [
+    {"seasonNumber": 1, "watchStatus": "WATCHED"},
+    {"seasonNumber": 2, "watchStatus": "UNWATCHED"}
+  ],
+  "seriesWatchStatus": "UNWATCHED",
+  "totalAvailableSeasons": 8,
+  "hasNewSeasons": true,
+  "seriesStatus": "COMPLETE",
+  "addedBy": "TestUser",
+  "dateAdded": "${series.dateAdded}",
+  "lastSeasonCheck": null,
+  "priority": 15,
+  "tmdbId": 1399
+}

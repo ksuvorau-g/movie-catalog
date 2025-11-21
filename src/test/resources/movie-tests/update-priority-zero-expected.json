@@ -1,0 +1,14 @@
+{
+  "id": "${movie.id}",
+  "title": "The Shawshank Redemption",
+  "link": "https://example.com/shawshank",
+  "coverImage": "/api/images/shawshank",
+  "comment": "Hope is a good thing",
+  "length": 142,
+  "genres": ["Drama", "Crime"],
+  "watchStatus": "UNWATCHED",
+  "addedBy": "TestUser",
+  "dateAdded": "${movie.dateAdded}",
+  "priority": 0,
+  "tmdbId": 278
+}

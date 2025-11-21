@@ -1,0 +1,14 @@
+{
+  "id": "${movie.id}",
+  "title": "Minimal Movie",
+  "link": null,
+  "coverImage": null,
+  "comment": null,
+  "length": null,
+  "genres": null,
+  "watchStatus": "UNWATCHED",
+  "addedBy": "TestUser",
+  "dateAdded": "${movie.dateAdded}",
+  "priority": 0,
+  "tmdbId": null
+}

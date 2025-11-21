@@ -1,0 +1,21 @@
+[
+  {
+    "id": "${movie1.id}",
+    "contentType": "MOVIE",
+    "title": "Inception",
+    "link": "https://example.com/inception",
+    "coverImage": "/api/images/image1",
+    "comment": "Mind-bending thriller about dreams within dreams",
+    "genres": ["Sci-Fi", "Thriller", "Action"],
+    "watchStatus": "UNWATCHED",
+    "addedBy": "Alice",
+    "dateAdded": "${movie1.dateAdded}",
+    "priority": 5,
+    "tmdbId": 27205,
+    "length": 148,
+    "seasons": null,
+    "hasNewSeasons": null,
+    "seriesStatus": null,
+    "totalAvailableSeasons": null
+  }
+]
