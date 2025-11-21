@@ -94,4 +94,10 @@ public class SeriesController {
     public SeriesResponse refreshSeasons(@PathVariable String id) {
         return seriesService.refreshSeasons(id);
     }
+    
+    @PostMapping("/refresh-all")
+    @Operation(summary = "Refresh all series", description = "Refresh all series that have a TMDB ID")
+    public com.moviecat.dto.BulkRefreshResponse refreshAllSeries() {
+        return seriesService.refreshAllSeriesWithTmdbId();
+    }
 }

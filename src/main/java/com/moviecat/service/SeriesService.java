@@ -1,5 +1,6 @@
 package com.moviecat.service;
 
+import com.moviecat.dto.BulkRefreshResponse;
 import com.moviecat.dto.SeriesRequest;
 import com.moviecat.dto.SeriesResponse;
 import com.moviecat.dto.tmdb.TmdbSeriesDetails;
@@ -387,6 +388,65 @@ public class SeriesService {
         log.info("Season refresh completed for series: {}. Added missing seasons: {}, removed extras: {}",
                 id, addedSeasons, removedSeasons);
         return toResponse(updatedSeries);
+    }
+
+    /**
+     * Refresh all series that have a TMDB ID.
+     * 
+     * @return bulk refresh summary
+     */
+    public BulkRefreshResponse refreshAllSeriesWithTmdbId() {
+        log.info("Starting bulk refresh for all series with TMDB ID");
+        
+        List<Series> allSeries = seriesRepository.findAll();
+        List<Series> seriesWithTmdbId = allSeries.stream()
+                .filter(s -> resolveTmdbId(s) != null)
+                .toList();
+        
+        int successCount = 0;
+        int failureCount = 0;
+        int updatedCount = 0;
+        
+        for (Series series : seriesWithTmdbId) {
+            try {
+                int previousMaxSeason = series.getSeasons() != null ? 
+                        series.getSeasons().stream()
+                                .map(Season::getSeasonNumber)
+                                .filter(Objects::nonNull)
+                                .max(Integer::compareTo)
+                                .orElse(0) : 0;
+                
+                refreshSeasons(series.getId());
+                successCount++;
+                
+                Series updatedSeries = seriesRepository.findById(series.getId()).orElse(null);
+                if (updatedSeries != null) {
+                    int newMaxSeason = updatedSeries.getSeasons() != null ?
+                            updatedSeries.getSeasons().stream()
+                                    .map(Season::getSeasonNumber)
+                                    .filter(Objects::nonNull)
+                                    .max(Integer::compareTo)
+                                    .orElse(0) : 0;
+                    
+                    if (newMaxSeason != previousMaxSeason) {
+                        updatedCount++;
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Failed to refresh series {}: {}", series.getId(), e.getMessage());
+                failureCount++;
+            }
+        }
+        
+        log.info("Bulk refresh completed. Total: {}, Success: {}, Failed: {}, Updated: {}",
+                seriesWithTmdbId.size(), successCount, failureCount, updatedCount);
+        
+        return BulkRefreshResponse.builder()
+                .totalProcessed(seriesWithTmdbId.size())
+                .successCount(successCount)
+                .failureCount(failureCount)
+                .updatedCount(updatedCount)
+                .build();
     }
 
     private List<Season> ensureSeasonList(Series series) {

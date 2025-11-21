@@ -18,6 +18,59 @@ body {
   max-width: 1400px;
   margin: 0 auto;
   padding: 12px;
+  position: relative;
+}
+
+/* Notification */
+.notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 1000;
+  max-width: 600px;
+  text-align: center;
+  animation: slideDown 0.3s ease-out, fadeOut 0.5s ease-out 4.5s;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.notification-success {
+  background: #48bb78;
+  color: white;
+}
+
+.notification-error {
+  background: #f56565;
+  color: white;
+}
+
+.notification-info {
+  background: #4299e1;
+  color: white;
 }
 
 /* Header */
@@ -1304,6 +1357,38 @@ body {
 
 .add-movie-button:active {
   transform: translateY(0);
+}
+
+.refresh-seasons-button {
+  background: #4299e1;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.refresh-seasons-button:hover {
+  background: #3182ce;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(66, 153, 225, 0.4);
+}
+
+.refresh-seasons-button:active {
+  transform: translateY(0);
+}
+
+.refresh-seasons-button:disabled {
+  background: #cbd5e0;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* Responsive Design */

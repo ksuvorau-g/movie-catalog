@@ -20,6 +20,8 @@ function App() {
   const [availableAdders, setAvailableAdders] = useState([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [deletedIds, setDeletedIds] = useState(new Set());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [notification, setNotification] = useState(null);
 
   // Load available adders once on mount
   useEffect(() => {
@@ -197,8 +199,47 @@ function App() {
     }
   };
 
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 5000);
+  };
+
+  const handleRefreshSeasons = async () => {
+    if (isRefreshing) return;
+
+    try {
+      setIsRefreshing(true);
+      setError(null);
+      
+      const response = await axios.post(`${API_BASE_URL}/series/refresh-all`);
+      
+      if (response.data.updatedCount > 0) {
+        await fetchCatalog();
+        showNotification(
+          `Refresh completed! Processed: ${response.data.totalProcessed}, Updated: ${response.data.updatedCount}, Failed: ${response.data.failureCount}`,
+          'success'
+        );
+      } else {
+        showNotification(
+          `Refresh completed! Processed: ${response.data.totalProcessed}. No updates found.`,
+          'info'
+        );
+      }
+    } catch (err) {
+      console.error('Error refreshing seasons:', err);
+      showNotification('Failed to refresh seasons. Please try again.', 'error');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   return (
     <div className="app">
+      {notification && (
+        <div className={`notification notification-${notification.type}`}>
+          {notification.message}
+        </div>
+      )}
       <header className="app-header">
         <h1>🎬 Movie Catalog</h1>
         <form className="search-form" onSubmit={handleSearch}>
@@ -216,6 +257,13 @@ function App() {
             </button>
           )}
         </form>
+        <button 
+          className="refresh-seasons-button"
+          onClick={handleRefreshSeasons}
+          disabled={isRefreshing}
+        >
+          {isRefreshing ? '🔄 Refreshing...' : '🔄 Refresh Seasons'}
+        </button>
         <button 
           className="add-movie-button" 
           onClick={() => setIsAddModalOpen(true)}
