@@ -1,7 +1,7 @@
 {
   "id": "${movie.id}",
   "title": "The Shawshank Redemption",
-  "link": "https://example.com/shawshank",
+  "link": "https://www.themoviedb.org/movie/278",
   "coverImage": "/api/images/shawshank",
   "comment": "Hope is a good thing",
   "length": 142,

@@ -1,9 +1,9 @@
 {
   "id": "${series.id}",
   "title": "Game of Thrones - Updated",
-  "link": "https://example.com/got-updated",
+  "link": null,
   "coverImage": "/api/images/got-new",
-  "comment": "Updated: Epic fantasy series with dragons",
+  "comment": "Updated: Epic fantasy series with dragons\nhttps://example.com/got-updated",
   "genres": ["Fantasy", "Drama", "Adventure", "Action"],
   "seasons": [
     {"seasonNumber": 1, "watchStatus": "UNWATCHED"},
@@ -17,5 +17,5 @@
   "dateAdded": "${series.dateAdded}",
   "lastSeasonCheck": null,
   "priority": 20,
-  "tmdbId": 1399
+  "tmdbId": null
 }

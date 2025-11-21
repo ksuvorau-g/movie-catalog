@@ -1,14 +1,14 @@
 {
   "id": "${movie.id}",
   "title": "The Shawshank Redemption - Updated",
-  "link": "https://example.com/shawshank-updated",
+  "link": null,
   "coverImage": "/api/images/shawshank-new",
-  "comment": "Updated comment: Still about hope",
+  "comment": "Updated comment: Still about hope\nhttps://example.com/shawshank-updated",
   "length": 143,
   "genres": ["Drama", "Crime", "Thriller"],
   "watchStatus": "UNWATCHED",
   "addedBy": "UpdatedUser",
   "dateAdded": "${movie.dateAdded}",
   "priority": 15,
-  "tmdbId": 278
+  "tmdbId": null
 }

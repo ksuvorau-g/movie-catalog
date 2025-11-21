@@ -1,9 +1,9 @@
 {
   "id": "${series.id}",
   "title": "Stranger Things",
-  "link": "https://example.com/stranger-things",
+  "link": null,
   "coverImage": "/api/images/stranger-things",
-  "comment": "Sci-fi horror set in the 1980s",
+  "comment": "Sci-fi horror set in the 1980s\nhttps://example.com/stranger-things",
   "genres": ["Sci-Fi", "Horror", "Drama"],
   "seasons": [
     {"seasonNumber": 1, "watchStatus": "UNWATCHED"},

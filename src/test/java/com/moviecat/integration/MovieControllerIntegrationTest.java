@@ -63,7 +63,6 @@ class MovieControllerIntegrationTest extends AbstractIntegrationTest {
     private void createTestData() {
         testMovie1 = Movie.builder()
                 .title("The Shawshank Redemption")
-                .link("https://example.com/shawshank")
                 .coverImage("/api/images/shawshank")
                 .comment("Hope is a good thing")
                 .length(142)
@@ -77,7 +76,6 @@ class MovieControllerIntegrationTest extends AbstractIntegrationTest {
 
         testMovie2 = Movie.builder()
                 .title("The Godfather")
-                .link("https://example.com/godfather")
                 .coverImage("/api/images/godfather")
                 .comment("An offer you can't refuse")
                 .length(175)
@@ -368,7 +366,7 @@ class MovieControllerIntegrationTest extends AbstractIntegrationTest {
     void shouldPreserveOriginalFieldsWhenUpdating() throws IOException, JSONException {
         MovieRequest updateRequest = MovieRequest.builder()
                 .title("Updated Title Only")
-                .link(testMovie1.getLink())
+                .link("https://www.themoviedb.org/movie/278")
                 .coverImage(testMovie1.getCoverImage())
                 .comment(testMovie1.getComment())
                 .length(testMovie1.getLength())

@@ -1,5 +1,13 @@
 package com.moviecat.service;
 
+import static com.moviecat.util.TmdbLinkUtil.*;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
 import com.moviecat.dto.BulkRefreshResponse;
 import com.moviecat.dto.SeriesRequest;
 import com.moviecat.dto.SeriesResponse;
@@ -9,20 +17,9 @@ import com.moviecat.model.Series;
 import com.moviecat.model.SeriesStatus;
 import com.moviecat.model.WatchStatus;
 import com.moviecat.repository.SeriesRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Service for TV series-related operations.
@@ -31,8 +28,7 @@ import java.util.regex.Pattern;
 @Slf4j
 @RequiredArgsConstructor
 public class SeriesService {
-    
-    private static final Pattern TMDB_TV_ID_PATTERN = Pattern.compile("/tv/(\\d+)");
+
 
     private final SeriesRepository seriesRepository;
     private final TmdbApiService tmdbApiService;
@@ -66,10 +62,14 @@ public class SeriesService {
             seasons.add(defaultSeason);
         }
         
+        // Parse link: extract tmdbId if TMDB link, append to comment otherwise
+        Integer tmdbId = parseTmdbIdTv(request.getLink());
+        String comment = buildComment(request.getComment(), request.getLink(), tmdbId);
+        
         Series series = Series.builder()
                 .title(request.getTitle())
-                .link(request.getLink())
-                .comment(request.getComment())
+                .tmdbId(tmdbId)
+                .comment(comment)
                 .coverImage(request.getCoverImage())
                 .genres(request.getGenres())
                 .seasons(seasons)
@@ -135,10 +135,14 @@ public class SeriesService {
         Series series = seriesRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Series not found with id: " + id));
         
+        // Parse link: extract tmdbId if TMDB link, append to comment otherwise
+        Integer tmdbId = parseTmdbIdTv(request.getLink());
+        String comment = buildComment(request.getComment(), request.getLink(), tmdbId);
+        
         // Update fields
         series.setTitle(request.getTitle());
-        series.setLink(request.getLink());
-        series.setComment(request.getComment());
+        series.setTmdbId(tmdbId);
+        series.setComment(comment);
         series.setCoverImage(request.getCoverImage());
         series.setGenres(request.getGenres());
         series.setAddedBy(request.getAddedBy());
@@ -457,21 +461,7 @@ public class SeriesService {
     }
 
     private Integer resolveTmdbId(Series series) {
-        if (series.getTmdbId() != null) {
-            return series.getTmdbId();
-        }
-        if (series.getLink() == null) {
-            return null;
-        }
-        Matcher matcher = TMDB_TV_ID_PATTERN.matcher(series.getLink());
-        if (matcher.find()) {
-            try {
-                return Integer.parseInt(matcher.group(1));
-            } catch (NumberFormatException ex) {
-                log.warn("Failed to parse TMDB ID from link {}", series.getLink(), ex);
-            }
-        }
-        return null;
+        return series.getTmdbId();
     }
 
     private int normalizeSeasonCount(Integer numberOfSeasons) {
@@ -502,7 +492,7 @@ public class SeriesService {
         return SeriesResponse.builder()
                 .id(series.getId())
                 .title(series.getTitle())
-                .link(series.getLink())
+                .link(buildTmdbLink(series.getTmdbId(), false))
                 .comment(series.getComment())
                 .coverImage(series.getCoverImage())
                 .genres(series.getGenres())
@@ -518,4 +508,5 @@ public class SeriesService {
                 .tmdbId(series.getTmdbId())
                 .build();
     }
+
 }

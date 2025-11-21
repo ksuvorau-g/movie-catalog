@@ -3,7 +3,7 @@
     "id": "${movie1.id}",
     "contentType": "MOVIE",
     "title": "Inception",
-    "link": "https://example.com/inception",
+    "link": "https://www.themoviedb.org/movie/27205",
     "coverImage": "/api/images/image1",
     "comment": "Mind-bending thriller about dreams within dreams",
     "genres": ["Sci-Fi", "Thriller", "Action"],

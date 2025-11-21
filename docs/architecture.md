@@ -142,7 +142,7 @@ Movie Catalog is a REST API service built with Spring Boot that manages a person
 - **Movie** (MongoDB Document)
   - id: String (MongoDB ObjectId)
   - title: String (required)
-  - link: String (optional)
+  - tmdbId: Integer (optional - TMDB movie ID, extracted from link in request)
   - comment: String (optional)
   - coverImage: String (optional)
   - length: Integer (optional - in minutes)
@@ -154,7 +154,7 @@ Movie Catalog is a REST API service built with Spring Boot that manages a person
 - **Series** (MongoDB Document)
   - id: String (MongoDB ObjectId)
   - title: String (required)
-  - link: String (optional)
+  - tmdbId: Integer (optional - TMDB series ID, extracted from link in request)
   - comment: String (optional)
   - coverImage: String (optional)
   - genres: List<String> (optional)
@@ -434,7 +434,7 @@ TV Series have more complex management than movies due to season tracking, autom
 ```json
 {
   "title": "Breaking Bad",
-  "link": "https://imdb.com/title/tt0903747",
+  "link": "https://www.themoviedb.org/tv/1396",
   "comment": "Highly recommended by friends",
   "coverImage": "/api/images/abc123",
   "genres": ["Crime", "Drama", "Thriller"],
@@ -449,7 +449,7 @@ TV Series have more complex management than movies due to season tracking, autom
 
 **Field Descriptions**:
 - `title` (String, required): Series title
-- `link` (String, optional): URL for IMDB/Kinopoisk page (used for season refresh)
+- `link` (String, optional): TMDB URL (will be parsed to extract tmdbId, non-TMDB links appended to comment)
 - `comment` (String, optional): Personal notes or review
 - `coverImage` (String, optional): Image reference (use `/api/images/{id}` format)
 - `genres` (List<String>, optional): Genre tags (e.g., ["Drama", "Comedy"])
@@ -464,7 +464,8 @@ TV Series have more complex management than movies due to season tracking, autom
 {
   "id": "507f1f77bcf86cd799439011",
   "title": "Breaking Bad",
-  "link": "https://imdb.com/title/tt0903747",
+  "link": "https://www.themoviedb.org/tv/1396",
+  "tmdbId": 1396,
   "comment": "Highly recommended by friends",
   "coverImage": "/api/images/abc123",
   "genres": ["Crime", "Drama", "Thriller"],
@@ -594,11 +595,10 @@ TV Series have more complex management than movies due to season tracking, autom
 **Request Body**: None
 
 **Behavior**:
-- Triggers manual season refresh from external source (IMDB/Kinopoisk)
-- Requires `link` field to be set on the series
+- Triggers manual season refresh from TMDB API
+- Requires `tmdbId` field to be set on the series
 - Updates `totalAvailableSeasons`, `seriesStatus`, and `hasNewSeasons` flags
 - Updates `lastSeasonCheck` timestamp
-- Currently a placeholder - full implementation pending
 
 ---
 
@@ -647,10 +647,10 @@ curl -X POST http://localhost:8080/api/series \
 
 #### Pattern 2: Add Series Without Seasons, Add Later
 ```bash
-# Step 1: Create series without seasons
+# Step 1: Create series without seasons (with TMDB link for future refresh)
 curl -X POST http://localhost:8080/api/series \
   -H "Content-Type: application/json" \
-  -d '{"title": "The Sopranos"}'
+  -d '{"title": "The Sopranos", "link": "https://www.themoviedb.org/tv/1398"}'
 
 # Step 2: Add seasons one by one as you discover them
 curl -X PATCH http://localhost:8080/api/series/{id}/seasons/1/watch-status \
@@ -734,8 +734,8 @@ curl -X PUT http://localhost:8080/api/series/{id} \
 3. **Complete Replacement**: Use `PUT` with full seasons array for restructuring
 
 #### For External Integration
-1. Always set `link` field to IMDB or Kinopoisk URL
-2. Use `POST /{id}/refresh` to manually sync seasons
+1. Always set `link` field to TMDB URL (e.g., `https://www.themoviedb.org/tv/{id}`) - tmdbId will be extracted automatically
+2. Use `POST /{id}/refresh` to manually sync seasons from TMDB
 3. Automatic refresh runs weekly (Mondays at midnight)
 4. External data populates: `totalAvailableSeasons`, `seriesStatus`, `hasNewSeasons`
 
@@ -754,7 +754,7 @@ curl -X PUT http://localhost:8080/api/series/{id} \
 // POST /api/series
 {
   "title": "Stranger Things",
-  "link": "https://www.imdb.com/title/tt4574334",
+  "link": "https://www.themoviedb.org/tv/66732",
   "seasons": [
     {"seasonNumber": 1, "watchStatus": "UNWATCHED"}
   ],
@@ -806,8 +806,8 @@ curl -X PUT http://localhost:8080/api/series/{id} \
 - **Solution**: Verify all seasons are properly saved in database
 
 **Problem**: Manual refresh not working
-- **Solution**: Ensure `link` field is set with valid IMDB/Kinopoisk URL
-- **Solution**: Check external API service implementation status
+- **Solution**: Ensure `tmdbId` is set (either directly or via TMDB link that gets parsed)
+- **Solution**: Verify TMDB API access token is configured correctly
 
 **Problem**: Series not appearing in recommendations
 - **Solution**: Ensure at least one season has `watchStatus = UNWATCHED`

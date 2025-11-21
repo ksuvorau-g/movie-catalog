@@ -42,7 +42,7 @@ class SeriesServiceTest {
     void refreshSeasonsAddsMissingSeasonsAndFlagsNewContent() {
         Series series = Series.builder()
                 .id("series-1")
-                .link("https://www.themoviedb.org/tv/12345-demo")
+                .tmdbId(12345)
                 .seasons(new ArrayList<>(List.of(
                         Season.builder().seasonNumber(1).watchStatus(WatchStatus.WATCHED).build(),
                         Season.builder().seasonNumber(2).watchStatus(WatchStatus.UNWATCHED).build()

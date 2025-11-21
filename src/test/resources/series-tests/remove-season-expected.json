@@ -1,7 +1,7 @@
 {
   "id": "${series.id}",
   "title": "Game of Thrones",
-  "link": "https://example.com/got",
+  "link": "https://www.themoviedb.org/tv/1399",
   "coverImage": "/api/images/got",
   "comment": "Epic fantasy series",
   "genres": ["Fantasy", "Drama", "Adventure"],

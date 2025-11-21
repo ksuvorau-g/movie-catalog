@@ -3,7 +3,7 @@
     "id": "${series1.id}",
     "contentType": "SERIES",
     "title": "Breaking Bad",
-    "link": "https://example.com/breaking-bad",
+    "link": "https://www.themoviedb.org/tv/1396",
     "coverImage": "/api/images/image2",
     "comment": "Chemistry teacher turns into drug kingpin",
     "genres": ["Crime", "Drama", "Thriller"],

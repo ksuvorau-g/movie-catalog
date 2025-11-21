@@ -65,7 +65,6 @@ class SeriesControllerIntegrationTest extends AbstractIntegrationTest {
     private void createTestData() {
         testSeries1 = Series.builder()
                 .title("Game of Thrones")
-                .link("https://example.com/got")
                 .coverImage("/api/images/got")
                 .comment("Epic fantasy series")
                 .genres(Arrays.asList("Fantasy", "Drama", "Adventure"))
@@ -86,7 +85,6 @@ class SeriesControllerIntegrationTest extends AbstractIntegrationTest {
 
         testSeries2 = Series.builder()
                 .title("The Wire")
-                .link("https://example.com/wire")
                 .coverImage("/api/images/wire")
                 .comment("Crime drama in Baltimore")
                 .genres(Arrays.asList("Crime", "Drama"))

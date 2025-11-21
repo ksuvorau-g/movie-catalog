@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import static com.moviecat.util.TmdbLinkUtil.buildTmdbLink;
+
 /**
  * Service for recommendation logic.
  */
@@ -171,7 +173,7 @@ public class RecommendationService {
                 .id(movie.getId())
                 .contentType(ContentType.MOVIE)
                 .title(movie.getTitle())
-                .link(movie.getLink())
+                .link(buildTmdbLink(movie.getTmdbId(), true))
                 .coverImage(movie.getCoverImage())
                 .comment(movie.getComment())
                 .priority(movie.getPriority())
@@ -188,7 +190,7 @@ public class RecommendationService {
                 .id(series.getId())
                 .contentType(ContentType.SERIES)
                 .title(series.getTitle())
-                .link(series.getLink())
+                .link(buildTmdbLink(series.getTmdbId(), false))
                 .coverImage(series.getCoverImage())
                 .comment(series.getComment())
                 .priority(series.getPriority())
@@ -197,7 +199,7 @@ public class RecommendationService {
                 .totalAvailableSeasons(series.getTotalAvailableSeasons())
                 .build();
     }
-    
+
     /**
      * Helper class to hold items with their calculated weights.
      */

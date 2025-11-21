@@ -1,9 +1,9 @@
 {
   "id": "${movie.id}",
   "title": "Pulp Fiction",
-  "link": "https://example.com/pulp-fiction",
+  "link": null,
   "coverImage": "/api/images/pulp",
-  "comment": "Quentin Tarantino masterpiece",
+  "comment": "Quentin Tarantino masterpiece\nhttps://example.com/pulp-fiction",
   "length": 154,
   "genres": ["Crime", "Drama", "Thriller"],
   "watchStatus": "UNWATCHED",

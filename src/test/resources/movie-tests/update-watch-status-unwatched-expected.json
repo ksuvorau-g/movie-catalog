@@ -1,7 +1,7 @@
 {
   "id": "${movie.id}",
   "title": "The Godfather",
-  "link": "https://example.com/godfather",
+  "link": "https://www.themoviedb.org/movie/238",
   "coverImage": "/api/images/godfather",
   "comment": "An offer you can't refuse",
   "length": 175,

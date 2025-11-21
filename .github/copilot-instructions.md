@@ -80,10 +80,12 @@ Critical indexes defined with `@Indexed` in domain models:
 - Auto-created via `spring.data.mongodb.auto-index-creation=true`
 
 ### External API Integration
-- `ExternalApiService` uses Spring WebFlux `WebClient` (non-blocking)
-- Scrapes season data from `link` URLs
+- `TmdbApiService` uses Spring WebFlux `WebClient` (non-blocking)
+- Fetches season data using TMDB IDs
 - Weekly scheduled refresh via `@Scheduled(cron = "${scheduler.cron.season-check}")` - Mondays midnight
-- Only processes series with `link` set
+- Only processes series with `tmdbId` set
+- When saving movies/series with `link` field in request DTO, TMDB links are parsed to extract `tmdbId`, non-TMDB links are appended to `comment`
+- Response DTOs build TMDB links from stored `tmdbId` (format: `https://www.themoviedb.org/movie/{id}` or `/tv/{id}`)
 
 ### Image Management System
 - `ImageService` downloads images from URLs, stores locally with UUID filenames

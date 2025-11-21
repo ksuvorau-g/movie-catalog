@@ -36,12 +36,7 @@ public class Movie {
     private String title;
     
     /**
-     * URL where the movie can be accessed/watched (optional).
-     */
-    private String link;
-    
-    /**
-     * User's personal notes, thoughts, or review (optional).
+     * User's personal notes, thoughts, review or links (optional).
      */
     private String comment;
     

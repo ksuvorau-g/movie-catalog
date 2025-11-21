@@ -220,10 +220,10 @@ class RecommendationControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void shouldIncludeLinkInRecommendation() {
-        // Given
+        // Given - create movie with TMDB link so it builds a link in response
         MovieRequest movie = MovieRequest.builder()
                 .title("Linked Movie")
-                .link("https://example.com/movie")
+                .link("https://www.themoviedb.org/movie/550")
                 .genres(List.of("Action"))
                 .addedBy("User")
                 .build();
@@ -240,7 +240,7 @@ class RecommendationControllerIntegrationTest extends AbstractIntegrationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody()).hasSize(1);
-        assertThat(response.getBody()[0].getLink()).isEqualTo("https://example.com/movie");
+        assertThat(response.getBody()[0].getLink()).isEqualTo("https://www.themoviedb.org/movie/550");
         assertThat(response.getBody()[0].getContentType()).isEqualTo(ContentType.MOVIE);
     }
 }

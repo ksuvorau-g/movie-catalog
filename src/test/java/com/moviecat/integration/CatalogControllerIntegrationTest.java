@@ -65,7 +65,6 @@ class CatalogControllerIntegrationTest extends AbstractIntegrationTest {
     private void createTestData() {
         movie1 = Movie.builder()
                 .title("Inception")
-                .link("https://example.com/inception")
                 .coverImage("/api/images/image1")
                 .comment("Mind-bending thriller about dreams within dreams")
                 .length(148)
@@ -79,7 +78,6 @@ class CatalogControllerIntegrationTest extends AbstractIntegrationTest {
 
         movie2 = Movie.builder()
                 .title("The Matrix")
-                .link("https://example.com/matrix")
                 .coverImage("/api/images/image3")
                 .comment("Reality is not what it seems")
                 .length(136)
@@ -93,7 +91,6 @@ class CatalogControllerIntegrationTest extends AbstractIntegrationTest {
 
         series1 = Series.builder()
                 .title("Breaking Bad")
-                .link("https://example.com/breaking-bad")
                 .coverImage("/api/images/image2")
                 .comment("Chemistry teacher turns into drug kingpin")
                 .genres(Arrays.asList("Crime", "Drama", "Thriller"))
@@ -108,6 +105,7 @@ class CatalogControllerIntegrationTest extends AbstractIntegrationTest {
                 .addedBy("Bob")
                 .dateAdded(LocalDateTime.now().minusDays(7))
                 .priority(10)
+                .tmdbId(1396)
                 .tmdbId(1396)
                 .build();
 

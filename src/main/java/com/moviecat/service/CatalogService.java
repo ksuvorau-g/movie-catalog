@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.moviecat.util.TmdbLinkUtil.buildTmdbLink;
+
 /**
  * Service for catalog operations (combined movies and series).
  */
@@ -197,7 +199,7 @@ public class CatalogService {
                 .id(movie.getId())
                 .contentType(ContentType.MOVIE)
                 .title(movie.getTitle())
-                .link(movie.getLink())
+                .link(buildTmdbLink(movie.getTmdbId(), true))
                 .coverImage(movie.getCoverImage())
                 .comment(movie.getComment())
                 .genres(movie.getGenres())
@@ -218,7 +220,7 @@ public class CatalogService {
                 .id(series.getId())
                 .contentType(ContentType.SERIES)
                 .title(series.getTitle())
-                .link(series.getLink())
+                .link(buildTmdbLink(series.getTmdbId(), false))
                 .coverImage(series.getCoverImage())
                 .comment(series.getComment())
                 .genres(series.getGenres())
@@ -233,4 +235,5 @@ public class CatalogService {
                 .totalAvailableSeasons(series.getTotalAvailableSeasons())
                 .build();
     }
+
 }
