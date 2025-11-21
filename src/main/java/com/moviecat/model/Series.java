@@ -69,7 +69,7 @@ public class Series {
      */
     @Indexed
     @Builder.Default
-    private WatchStatus seriesWatchStatus = WatchStatus.UNWATCHED;
+    private WatchStatus watchStatus = WatchStatus.UNWATCHED;
     
     /**
      * Total number of seasons available (fetched from external source).
@@ -130,14 +130,14 @@ public class Series {
      */
     public void updateSeriesWatchStatus() {
         if (seasons == null || seasons.isEmpty()) {
-            this.seriesWatchStatus = WatchStatus.UNWATCHED;
+            this.watchStatus = WatchStatus.UNWATCHED;
             return;
         }
         
         boolean allWatched = seasons.stream()
                 .allMatch(season -> season.getWatchStatus() == WatchStatus.WATCHED);
         
-        this.seriesWatchStatus = allWatched ? WatchStatus.WATCHED : WatchStatus.UNWATCHED;
+        this.watchStatus = allWatched ? WatchStatus.WATCHED : WatchStatus.UNWATCHED;
         
         // Reset hasNewSeasons flag when all seasons are watched
         if (allWatched) {

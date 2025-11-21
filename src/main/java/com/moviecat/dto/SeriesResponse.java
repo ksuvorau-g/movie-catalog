@@ -26,14 +26,15 @@ public class SeriesResponse {
     private String comment;
     private String coverImage;
     private List<String> genres;
-    private List<Season> seasons;
-    private WatchStatus seriesWatchStatus;
-    private Integer totalAvailableSeasons;
-    private Boolean hasNewSeasons;
-    private SeriesStatus seriesStatus;
+    private WatchStatus watchStatus;
     private String addedBy;
     private LocalDateTime dateAdded;
-    private LocalDateTime lastSeasonCheck;
     private Integer priority;
     private Integer tmdbId;
+
+    private List<Season> seasons;
+    private Boolean hasNewSeasons;
+    private SeriesStatus seriesStatus;
+    private Integer totalAvailableSeasons;
+    private LocalDateTime lastSeasonCheck;
 }

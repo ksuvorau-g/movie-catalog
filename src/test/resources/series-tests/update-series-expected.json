@@ -9,7 +9,7 @@
     {"seasonNumber": 1, "watchStatus": "UNWATCHED"},
     {"seasonNumber": 2, "watchStatus": "UNWATCHED"}
   ],
-  "seriesWatchStatus": "UNWATCHED",
+  "watchStatus": "UNWATCHED",
   "totalAvailableSeasons": 8,
   "hasNewSeasons": true,
   "seriesStatus": "COMPLETE",

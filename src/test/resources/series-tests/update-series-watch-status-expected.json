@@ -10,7 +10,7 @@
     {"seasonNumber": 2, "watchStatus": "WATCHED"},
     {"seasonNumber": 3, "watchStatus": "WATCHED"}
   ],
-  "seriesWatchStatus": "WATCHED",
+  "watchStatus": "WATCHED",
   "totalAvailableSeasons": 8,
   "hasNewSeasons": false,
   "seriesStatus": "COMPLETE",

@@ -142,7 +142,6 @@ function App() {
             return {
               ...catalogItem,
               ...response.data,
-              watchStatus: response.data.seriesWatchStatus || response.data.watchStatus,
               contentType: catalogItem.contentType // Preserve contentType
             };
           }
@@ -176,7 +175,6 @@ function App() {
             return {
               ...catalogItem,
               ...response.data,
-              watchStatus: response.data.seriesWatchStatus || response.data.watchStatus,
               contentType: catalogItem.contentType // Preserve contentType
             };
           }

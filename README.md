@@ -152,7 +152,7 @@ PATCH /api/series/{id}/watch-status
 
 ### Watch Status
 - **Movies**: Direct `watchStatus` field (WATCHED/UNWATCHED)
-- **Series**: `seriesWatchStatus` auto-calculated from all seasons
+- **Series**: `watchStatus` auto-calculated from all seasons
   - WATCHED: All seasons are watched
   - UNWATCHED: Any season is unwatched or no seasons exist
 

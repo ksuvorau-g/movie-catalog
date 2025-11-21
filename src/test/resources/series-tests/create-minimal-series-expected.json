@@ -11,7 +11,7 @@
       "watchStatus": "UNWATCHED"
     }
   ],
-  "seriesWatchStatus": "UNWATCHED",
+  "watchStatus": "UNWATCHED",
   "totalAvailableSeasons": null,
   "hasNewSeasons": false,
   "seriesStatus": null,

@@ -28,10 +28,10 @@ public interface SeriesRepository extends MongoRepository<Series, String> {
     /**
      * Find series by overall watch status.
      * 
-     * @param seriesWatchStatus the watch status (WATCHED or UNWATCHED)
+     * @param watchStatus the watch status (WATCHED or UNWATCHED)
      * @return list of series with the specified watch status
      */
-    List<Series> findBySeriesWatchStatus(WatchStatus seriesWatchStatus);
+    List<Series> findByWatchStatus(WatchStatus watchStatus);
     
     /**
      * Find series with new unwatched seasons.
@@ -75,11 +75,11 @@ public interface SeriesRepository extends MongoRepository<Series, String> {
     List<Series> findAllWithLink();
     
     /**
-     * Find series with unwatched seasons (seriesWatchStatus = UNWATCHED).
+     * Find series with unwatched seasons (watchStatus = UNWATCHED).
      * Used for recommendations.
      * 
      * @return list of series that are not fully watched
      */
-    @Query("{ 'seriesWatchStatus': 'UNWATCHED' }")
+    @Query("{ 'watchStatus': 'UNWATCHED' }")
     List<Series> findUnwatchedSeries();
 }

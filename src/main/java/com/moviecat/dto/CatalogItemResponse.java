@@ -2,6 +2,7 @@ package com.moviecat.dto;
 
 import com.moviecat.model.ContentType;
 import com.moviecat.model.Season;
+import com.moviecat.model.WatchStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,18 +21,19 @@ import java.util.List;
 public class CatalogItemResponse {
     
     private String id;
-    private ContentType contentType;
     private String title;
     private String link;
-    private String coverImage;
     private String comment;
+    private String coverImage;
     private List<String> genres;
-    private String watchStatus;
+    private WatchStatus watchStatus;
     private String addedBy;
     private LocalDateTime dateAdded;
     private Integer priority;
     private Integer tmdbId;
-    
+
+    private ContentType contentType;
+
     // Movie-specific
     private Integer length;
     

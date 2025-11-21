@@ -103,7 +103,7 @@ curl -X PATCH http://localhost:8080/api/series/{id}/watch-status \
   -d '{"watchStatus": "WATCHED"}'
 ```
 
-**Result**: All existing seasons marked as WATCHED, seriesWatchStatus becomes WATCHED
+**Result**: All existing seasons marked as WATCHED, watchStatus becomes WATCHED
 
 ### 5. Reset Series for Rewatching
 
@@ -115,7 +115,7 @@ curl -X PATCH http://localhost:8080/api/series/{id}/watch-status \
   -d '{"watchStatus": "UNWATCHED"}'
 ```
 
-**Result**: All seasons marked as UNWATCHED, seriesWatchStatus becomes UNWATCHED
+**Result**: All seasons marked as UNWATCHED, watchStatus becomes UNWATCHED
 
 ### 6. Update Series Metadata (Keep Seasons Unchanged)
 
@@ -247,7 +247,7 @@ curl -X POST http://localhost:8080/api/series/{id}/refresh
       "watchStatus": "WATCHED|UNWATCHED"
     }
   ],
-  "seriesWatchStatus": "WATCHED|UNWATCHED (auto-calculated)",
+  "watchStatus": "WATCHED|UNWATCHED (auto-calculated)",
   "totalAvailableSeasons": "integer (from external source)",
   "hasNewSeasons": "boolean (auto-calculated)",
   "seriesStatus": "COMPLETE|ONGOING (from external source)",
@@ -270,13 +270,13 @@ curl -X POST http://localhost:8080/api/series/{id}/refresh
 5. **Replacement**: PUT with seasons array replaces all existing seasons
 
 ### Watch Status Calculation
-1. **Default Season**: Because at least one season always exists, omitting seasons simply results in a single UNWATCHED season 1, keeping `seriesWatchStatus = UNWATCHED` until you update it
-2. **All Watched**: All seasons WATCHED → seriesWatchStatus = WATCHED
-3. **Any Unwatched**: Any season UNWATCHED → seriesWatchStatus = UNWATCHED
+1. **Default Season**: Because at least one season always exists, omitting seasons simply results in a single UNWATCHED season 1, keeping `watchStatus = UNWATCHED` until you update it
+2. **All Watched**: All seasons WATCHED → watchStatus = WATCHED
+3. **Any Unwatched**: Any season UNWATCHED → watchStatus = UNWATCHED
 4. **Auto-Recalculation**: Happens after every season change
 
 ### Recommendations
-1. **Inclusion Criteria**: Only series with unwatched seasons (seriesWatchStatus = UNWATCHED)
+1. **Inclusion Criteria**: Only series with unwatched seasons (watchStatus = UNWATCHED)
 2. **High Priority**: Series with hasNewSeasons=true get 10x weight
 3. **Manual Priority**: Higher priority values increase recommendation probability
 4. **Age-Based**: Older unwatched series get higher weight
@@ -371,7 +371,7 @@ PATCH /api/series/{id}/seasons/6/watch-status
 
 ### Problem: Series watch status not updating
 
-**Symptoms**: Marking seasons doesn't change seriesWatchStatus
+**Symptoms**: Marking seasons doesn't change watchStatus
 
 **Solutions**:
 1. Verify ALL seasons are marked WATCHED (check response)
@@ -404,7 +404,7 @@ PATCH /api/series/{id}/seasons/6/watch-status
 **Symptoms**: Series exists but never recommended
 
 **Solutions**:
-1. Check seriesWatchStatus is UNWATCHED (at least one unwatched season)
+1. Check watchStatus is UNWATCHED (at least one unwatched season)
 2. Verify seasons array is not empty
 3. Increase priority value for higher probability
 4. Check if all seasons are marked WATCHED
@@ -448,7 +448,7 @@ PATCH /api/series/{id}/seasons/6/watch-status
 ### Display Logic
 ```javascript
 // Check if series has unwatched content
-const hasUnwatchedContent = series.seriesWatchStatus === 'UNWATCHED';
+const hasUnwatchedContent = series.watchStatus === 'UNWATCHED';
 
 // Calculate watch progress
 const watchedSeasons = series.seasons.filter(s => s.watchStatus === 'WATCHED').length;
@@ -508,7 +508,7 @@ async function addSeason(seriesId, seasonNumber) {
 - [ ] Replace all seasons via PUT
 - [ ] Update priority
 - [ ] Delete series
-- [ ] Verify seriesWatchStatus calculation
+- [ ] Verify watchStatus calculation
 - [ ] Test skip seasons (non-sequential)
 - [ ] Test manual refresh
 
@@ -522,7 +522,7 @@ async function addSeason(seriesId, seasonNumber) {
     {"seasonNumber": 3, "watchStatus": "UNWATCHED"}
   ]
 }
-// Expected: seriesWatchStatus = UNWATCHED
+// Expected: watchStatus = UNWATCHED
 
 {
   "title": "Test Series Fully Watched",
@@ -531,5 +531,5 @@ async function addSeason(seriesId, seasonNumber) {
     {"seasonNumber": 2, "watchStatus": "WATCHED"}
   ]
 }
-// Expected: seriesWatchStatus = WATCHED
+// Expected: watchStatus = WATCHED
 ```

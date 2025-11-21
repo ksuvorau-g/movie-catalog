@@ -443,8 +443,7 @@ function AddMovieModal({ isOpen, onClose, onSave }) {
       // Transform the response to catalog item format
       const newItem = {
         ...response.data,
-        contentType: formData.contentType,
-        watchStatus: response.data.seriesWatchStatus || response.data.watchStatus
+        contentType: formData.contentType
       };
       
       handleClose();

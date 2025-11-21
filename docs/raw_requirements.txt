@@ -195,7 +195,7 @@ SERIES RESPONSE (GET/POST/PUT/PATCH):
     {"seasonNumber": 1, "watchStatus": "WATCHED"},
     {"seasonNumber": 2, "watchStatus": "UNWATCHED"}
   ],
-  "seriesWatchStatus": "UNWATCHED",          // AUTO-CALCULATED
+  "watchStatus": "UNWATCHED",          // AUTO-CALCULATED
   "totalAvailableSeasons": 5,                // FROM EXTERNAL SOURCE
   "hasNewSeasons": true,                     // AUTO-CALCULATED
   "seriesStatus": "COMPLETE",                // FROM EXTERNAL SOURCE

@@ -159,7 +159,7 @@ Movie Catalog is a REST API service built with Spring Boot that manages a person
   - coverImage: String (optional)
   - genres: List<String> (optional)
   - seasons: List<Season> (collection of seasons, never empty; backend auto-creates season 1/UNWATCHED if client omits the list)
-  - seriesWatchStatus: WatchStatus enum (calculated automatically)
+  - watchStatus: WatchStatus enum (calculated automatically)
   - totalAvailableSeasons: Integer (fetched from external source)
   - hasNewSeasons: Boolean (automatic)
   - seriesStatus: SeriesStatus enum (COMPLETE, ONGOING)
@@ -472,7 +472,7 @@ TV Series have more complex management than movies due to season tracking, autom
     {"seasonNumber": 1, "watchStatus": "WATCHED"},
     {"seasonNumber": 2, "watchStatus": "UNWATCHED"}
   ],
-  "seriesWatchStatus": "UNWATCHED",
+  "watchStatus": "UNWATCHED",
   "totalAvailableSeasons": null,
   "hasNewSeasons": false,
   "seriesStatus": null,
@@ -484,9 +484,9 @@ TV Series have more complex management than movies due to season tracking, autom
 ```
 
 **Important Notes**:
-- `seriesWatchStatus` is auto-calculated: WATCHED if all seasons are watched, otherwise UNWATCHED
+- `watchStatus` is auto-calculated: WATCHED if all seasons are watched, otherwise UNWATCHED
 - `seasons` can be empty initially and added later via season watch status updates
-- If no seasons provided, `seriesWatchStatus` defaults to UNWATCHED
+- If no seasons provided, `watchStatus` defaults to UNWATCHED
 - `hasNewSeasons` is false until external refresh detects new seasons
 
 ---
@@ -500,7 +500,7 @@ TV Series have more complex management than movies due to season tracking, autom
 - Updates all provided fields
 - If `seasons` array is provided, replaces existing seasons entirely
 - If `seasons` is null or omitted, existing seasons are preserved
-- `seriesWatchStatus` is recalculated if seasons are updated
+- `watchStatus` is recalculated if seasons are updated
 - Does NOT affect auto-managed fields: `totalAvailableSeasons`, `hasNewSeasons`, `seriesStatus`, `lastSeasonCheck`
 
 **Example - Update without affecting seasons**:
@@ -528,7 +528,7 @@ TV Series have more complex management than movies due to season tracking, autom
 **Behavior**:
 - If season doesn't exist, creates it automatically with the specified watch status
 - Updates watch status of existing season
-- Recalculates `seriesWatchStatus` based on all seasons
+- Recalculates `watchStatus` based on all seasons
 - Returns updated series with all seasons
 
 **Example Response**:
@@ -541,7 +541,7 @@ TV Series have more complex management than movies due to season tracking, autom
     {"seasonNumber": 2, "watchStatus": "WATCHED"},
     {"seasonNumber": 3, "watchStatus": "UNWATCHED"}
   ],
-  "seriesWatchStatus": "UNWATCHED",
+  "watchStatus": "UNWATCHED",
   ...
 }
 ```
@@ -560,7 +560,7 @@ TV Series have more complex management than movies due to season tracking, autom
 
 **Behavior**:
 - Updates watch status of ALL existing seasons to the specified value
-- Recalculates `seriesWatchStatus` (will match the provided status)
+- Recalculates `watchStatus` (will match the provided status)
 - Does NOT create new seasons - only affects existing seasons
 - Useful for marking entire series as watched or resetting to unwatched
 
@@ -704,8 +704,8 @@ curl -X PUT http://localhost:8080/api/series/{id} \
 
 **Series Watch Status Logic**:
 1. Service enforces at least one season; if the client omits `seasons`, season 1 is inserted with `UNWATCHED`
-2. If all seasons have `watchStatus = WATCHED` → `seriesWatchStatus = WATCHED`
-3. If any season has `watchStatus = UNWATCHED` → `seriesWatchStatus = UNWATCHED`
+2. If all seasons have `watchStatus = WATCHED` → `watchStatus = WATCHED`
+3. If any season has `watchStatus = UNWATCHED` → `watchStatus = UNWATCHED`
 
 **Automatic Recalculation Triggers**:
 - When series is created with seasons
@@ -811,7 +811,7 @@ curl -X PUT http://localhost:8080/api/series/{id} \
 
 **Problem**: Series not appearing in recommendations
 - **Solution**: Ensure at least one season has `watchStatus = UNWATCHED`
-- **Solution**: Check if `seriesWatchStatus = UNWATCHED`
+- **Solution**: Check if `watchStatus = UNWATCHED`
 
 ---
 

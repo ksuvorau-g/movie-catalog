@@ -85,7 +85,7 @@ public class CatalogService {
             }
             if (watchStatus != null && !watchStatus.isEmpty()) {
                 WatchStatus status = WatchStatus.valueOf(watchStatus.toUpperCase());
-                seriesStream = seriesStream.filter(s -> s.getSeriesWatchStatus() == status);
+                seriesStream = seriesStream.filter(s -> s.getWatchStatus() == status);
             }
             if (addedBy != null && !addedBy.isEmpty()) {
                 seriesStream = seriesStream.filter(s -> addedBy.equals(s.getAddedBy()));
@@ -185,7 +185,7 @@ public class CatalogService {
     private Comparator<CatalogItemResponse> createWatchStatusComparator() {
         return Comparator.comparing((CatalogItemResponse item) -> {
             // UNWATCHED = 0, WATCHED = 1, so unwatched items come first
-            return "UNWATCHED".equals(item.getWatchStatus()) ? 0 : 1;
+            return item.getWatchStatus() == WatchStatus.UNWATCHED ? 0 : 1;
         });
     }
     
@@ -201,7 +201,7 @@ public class CatalogService {
                 .coverImage(movie.getCoverImage())
                 .comment(movie.getComment())
                 .genres(movie.getGenres())
-                .watchStatus(movie.getWatchStatus().toString())
+                .watchStatus(movie.getWatchStatus())
                 .addedBy(movie.getAddedBy())
                 .dateAdded(movie.getDateAdded())
                 .priority(movie.getPriority())
@@ -222,7 +222,7 @@ public class CatalogService {
                 .coverImage(series.getCoverImage())
                 .comment(series.getComment())
                 .genres(series.getGenres())
-                .watchStatus(series.getSeriesWatchStatus() != null ? series.getSeriesWatchStatus().toString() : null)
+                .watchStatus(series.getWatchStatus() != null ? series.getWatchStatus() : null)
                 .addedBy(series.getAddedBy())
                 .dateAdded(series.getDateAdded())
                 .priority(series.getPriority())

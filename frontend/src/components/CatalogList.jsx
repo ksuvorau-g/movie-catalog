@@ -65,14 +65,12 @@ function CatalogList({ items, deletedIds = new Set(), onDelete, onMarkAsWatched,
 
   const handleSeasonUpdate = (seriesId, updatedSeriesData) => {
     // Update the local state with the new series data from the API
-    // Transform SeriesResponse to CatalogItemResponse format (seriesWatchStatus -> watchStatus)
     setLocalItems(prevItems =>
       prevItems.map(item => {
         if (item.id === seriesId) {
           return {
             ...item,
             ...updatedSeriesData,
-            watchStatus: updatedSeriesData.seriesWatchStatus || updatedSeriesData.watchStatus,
             contentType: item.contentType // Preserve contentType from original item
           };
         }

@@ -16,14 +16,14 @@ import lombok.NoArgsConstructor;
 public class RecommendationResponse {
     
     private String id;
-    private ContentType contentType;
     private String title;
     private String link;
-    private String coverImage;
     private String comment;
+    private String coverImage;
     private Integer priority;
     private String addedBy;
-    
+    private ContentType contentType;
+
     // Movie-specific
     private Integer length;
     

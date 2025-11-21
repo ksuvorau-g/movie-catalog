@@ -74,7 +74,7 @@ class SeriesControllerIntegrationTest extends AbstractIntegrationTest {
                         Season.builder().seasonNumber(2).watchStatus(WatchStatus.UNWATCHED).build(),
                         Season.builder().seasonNumber(3).watchStatus(WatchStatus.UNWATCHED).build()
                 ))
-                .seriesWatchStatus(WatchStatus.UNWATCHED)
+                .watchStatus(WatchStatus.UNWATCHED)
                 .totalAvailableSeasons(8)
                 .hasNewSeasons(true)
                 .seriesStatus(SeriesStatus.COMPLETE)
@@ -97,7 +97,7 @@ class SeriesControllerIntegrationTest extends AbstractIntegrationTest {
                         Season.builder().seasonNumber(4).watchStatus(WatchStatus.WATCHED).build(),
                         Season.builder().seasonNumber(5).watchStatus(WatchStatus.WATCHED).build()
                 ))
-                .seriesWatchStatus(WatchStatus.WATCHED)
+                .watchStatus(WatchStatus.WATCHED)
                 .totalAvailableSeasons(5)
                 .hasNewSeasons(false)
                 .seriesStatus(SeriesStatus.COMPLETE)
@@ -263,7 +263,7 @@ class SeriesControllerIntegrationTest extends AbstractIntegrationTest {
                 .orElse(null);
         assertThat(season2).isNotNull();
         assertThat(season2.getWatchStatus()).isEqualTo(WatchStatus.WATCHED);
-        assertThat(response.getBody().getSeriesWatchStatus()).isEqualTo(WatchStatus.UNWATCHED);
+        assertThat(response.getBody().getWatchStatus()).isEqualTo(WatchStatus.UNWATCHED);
 
         assertJsonResponseMatches(response.getBody(), "series-tests/update-season-watch-status-expected.json");
     }
@@ -290,7 +290,7 @@ class SeriesControllerIntegrationTest extends AbstractIntegrationTest {
                 .orElse(null);
         assertThat(season1).isNotNull();
         assertThat(season1.getWatchStatus()).isEqualTo(WatchStatus.UNWATCHED);
-        assertThat(response.getBody().getSeriesWatchStatus()).isEqualTo(WatchStatus.UNWATCHED);
+        assertThat(response.getBody().getWatchStatus()).isEqualTo(WatchStatus.UNWATCHED);
     }
 
     @Test
@@ -309,7 +309,7 @@ class SeriesControllerIntegrationTest extends AbstractIntegrationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getId()).isEqualTo(testSeries1.getId());
-        assertThat(response.getBody().getSeriesWatchStatus()).isEqualTo(WatchStatus.WATCHED);
+        assertThat(response.getBody().getWatchStatus()).isEqualTo(WatchStatus.WATCHED);
         assertThat(response.getBody().getHasNewSeasons()).isFalse();
         
         // All seasons should be marked as watched
@@ -335,7 +335,7 @@ class SeriesControllerIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getSeriesWatchStatus()).isEqualTo(WatchStatus.UNWATCHED);
+        assertThat(response.getBody().getWatchStatus()).isEqualTo(WatchStatus.UNWATCHED);
         
         // All seasons should be marked as unwatched
         assertThat(response.getBody().getSeasons()).allSatisfy(s -> 
@@ -392,7 +392,7 @@ class SeriesControllerIntegrationTest extends AbstractIntegrationTest {
                 .seasons(Arrays.asList(
                         Season.builder().seasonNumber(1).watchStatus(WatchStatus.UNWATCHED).build()
                 ))
-                .seriesWatchStatus(WatchStatus.UNWATCHED)
+                .watchStatus(WatchStatus.UNWATCHED)
                 .addedBy("TestUser")
                 .build();
         singleSeasonSeries = seriesRepository.save(singleSeasonSeries);
@@ -501,7 +501,7 @@ class SeriesControllerIntegrationTest extends AbstractIntegrationTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getSeasons()).hasSize(4);
         assertThat(response.getBody().getPriority()).isEqualTo(30);
-        assertThat(response.getBody().getSeriesWatchStatus()).isEqualTo(WatchStatus.WATCHED);
+        assertThat(response.getBody().getWatchStatus()).isEqualTo(WatchStatus.WATCHED);
         assertThat(response.getBody().getHasNewSeasons()).isFalse();
     }
 
@@ -538,7 +538,7 @@ class SeriesControllerIntegrationTest extends AbstractIntegrationTest {
         );
 
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getSeriesWatchStatus()).isEqualTo(WatchStatus.UNWATCHED);
+        assertThat(response.getBody().getWatchStatus()).isEqualTo(WatchStatus.UNWATCHED);
     }
 
     @Test
@@ -560,7 +560,7 @@ class SeriesControllerIntegrationTest extends AbstractIntegrationTest {
         );
 
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getSeriesWatchStatus()).isEqualTo(WatchStatus.WATCHED);
+        assertThat(response.getBody().getWatchStatus()).isEqualTo(WatchStatus.WATCHED);
     }
 
     @Test

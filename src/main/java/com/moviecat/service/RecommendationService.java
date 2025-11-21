@@ -105,7 +105,7 @@ public class RecommendationService {
         // Get series with unwatched seasons
         List<Series> allSeries = seriesRepository.findAll();
         for (Series series : allSeries) {
-            if (series.getSeriesWatchStatus() == WatchStatus.UNWATCHED) {
+            if (series.getWatchStatus() == WatchStatus.UNWATCHED) {
                 if (addedBy == null || addedBy.equals(series.getAddedBy())) {
                     boolean hasNewSeasons = series.getHasNewSeasons() != null && series.getHasNewSeasons();
                     double weight = calculateWeight(series.getDateAdded(), series.getPriority(), hasNewSeasons);

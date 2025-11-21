@@ -101,7 +101,7 @@ class CatalogControllerIntegrationTest extends AbstractIntegrationTest {
                         Season.builder().seasonNumber(1).watchStatus(WatchStatus.WATCHED).build(),
                         Season.builder().seasonNumber(2).watchStatus(WatchStatus.UNWATCHED).build()
                 ))
-                .seriesWatchStatus(WatchStatus.UNWATCHED)
+                .watchStatus(WatchStatus.UNWATCHED)
                 .totalAvailableSeasons(5)
                 .hasNewSeasons(true)
                 .seriesStatus(SeriesStatus.COMPLETE)
@@ -186,7 +186,7 @@ class CatalogControllerIntegrationTest extends AbstractIntegrationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody()).hasSize(2);
-        assertThat(Arrays.stream(response.getBody()).allMatch(item -> "UNWATCHED".equals(item.getWatchStatus()))).isTrue();
+        assertThat(Arrays.stream(response.getBody()).allMatch(item -> item.getWatchStatus() == WatchStatus.UNWATCHED)).isTrue();
 
         assertJsonResponseMatches(response.getBody(), "filter-by-unwatched-expected.json");
     }
@@ -202,7 +202,7 @@ class CatalogControllerIntegrationTest extends AbstractIntegrationTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody()).hasSize(1);
         assertThat(response.getBody()[0].getTitle()).isEqualTo("The Matrix");
-        assertThat(response.getBody()[0].getWatchStatus()).isEqualTo("WATCHED");
+        assertThat(response.getBody()[0].getWatchStatus()).isEqualTo(WatchStatus.WATCHED);
     }
 
     @Test

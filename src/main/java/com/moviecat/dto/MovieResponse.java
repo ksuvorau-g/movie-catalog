@@ -23,11 +23,12 @@ public class MovieResponse {
     private String link;
     private String comment;
     private String coverImage;
-    private Integer length;
     private List<String> genres;
     private WatchStatus watchStatus;
     private String addedBy;
     private LocalDateTime dateAdded;
     private Integer priority;
     private Integer tmdbId;
+
+    private Integer length;
 }
