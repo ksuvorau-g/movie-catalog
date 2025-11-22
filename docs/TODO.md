@@ -3,7 +3,7 @@
 ## Overview
 This document tracks the implementation status of features from the raw requirements document.
 
-**Status:** 26 of 49 features completed (Updated: Nov 19, 2025)
+**Status:** 31 of 49 features completed (Updated: Nov 22, 2025)
 
 **Summary:**
 - ✅ **Core CRUD APIs**: Complete for movies and series
@@ -12,14 +12,16 @@ This document tracks the implementation status of features from the raw requirem
 - ✅ **Notifications**: Basic infrastructure complete
 - ✅ **Image Management**: Download, store, retrieve system complete
 - ✅ **Series Season Management**: Create with seasons, update seasons, auto-status calculation
-- ❌ **External API Integration**: Not implemented (critical gap)
+- ✅ **TMDB Integration**: Complete integration for season refresh (manual + bulk)
+- ⚠️ **External API Integration**: TMDB implemented, IMDB/Kinopoisk scraping not implemented
 - ❌ **Validation & Error Handling**: Minimal implementation
-- ⚠️ **Frontend Season Management**: Season tracking + bulk operations shipped, but notification UI and manual refresh controls still missing
+- ⚠️ **Frontend Season Management**: Season tracking, bulk operations, and manual refresh button all shipped, but notification UI still missing
+- ✅ **Automated Season Checking**: Scheduler implemented (notifications integration pending)
 - ❌ **Testing**: Minimal coverage
 
 ---
 
-## ✅ Completed Features (22/36)
+## ✅ Completed Features (30/49)
 
 ### Core Movie Operations
 - [x] **Add new movie endpoint** - POST /api/movies - Create endpoint to add a new movie with all fields (title required, link, comment, coverImage, length, genre, addedBy optional). Include duplicate warning.
@@ -52,8 +54,15 @@ This document tracks the implementation status of features from the raw requirem
 - [x] **Get all notifications endpoint** - GET /api/notifications - Endpoint exists and returns active notifications. Verify filtering logic for series with watched seasons.
 - [x] **Dismiss notification endpoint** - DELETE /api/notifications/{id} - Endpoint exists to dismiss individual notifications by marking dismissed=true.
 
+### TMDB Integration
+- [x] **TMDB API Service** - Complete WebClient-based integration with TMDB API implemented in TmdbApiService. Fetches movie/series metadata, season counts, and cover images.
+- [x] **Manual season refresh endpoint** - POST /api/series/{id}/refresh - Fully implemented in SeriesService.refreshSeasons() with TMDB API integration. Updates totalAvailableSeasons, seriesStatus, hasNewSeasons, and syncs season list.
+- [x] **Bulk refresh endpoint** - POST /api/series/refresh-all - Implemented in SeriesService.refreshAllSeriesWithTmdbId(). Returns BulkRefreshResponse with success/failure counts.
+- [x] **TMDB enrichment endpoints** - POST /api/tmdb/enrich/movie and /api/tmdb/enrich/series for fetching metadata during content creation.
+
 ### Frontend Features
 - [x] **Frontend - Bulk season operations** - UI controls to mark entire series as watched/unwatched via PATCH /api/series/{id}/watch-status. Implemented in SeasonList.jsx with "Mark All Watched"/"Mark All Unwatched" buttons, progress tracking, and disabled state logic.
+- [x] **Frontend - Manual season refresh button** - "Fetch Seasons" button in SeasonList.jsx triggers POST /api/series/{id}/refresh with loading state and error handling. Only shown when series has TMDB link.
 
 ### Infrastructure
 - [x] **Database indexes for performance** - Verify MongoDB indexes are created on title, watchStatus, dateAdded, addedBy, hasNewSeasons, seriesStatus, priority fields using @Indexed annotations.
@@ -61,41 +70,42 @@ This document tracks the implementation status of features from the raw requirem
 
 ---
 
-## ❌ Pending Implementation (14/36)
+## ❌ Pending Implementation (18/49)
 
-### External API Integration (Critical Gap)
+### Automated Season Checking (Critical Gap)
+- [x] **Create SeasonRefreshScheduler** - Implemented @Scheduled task in `SeasonRefreshScheduler.java` that runs weekly (Monday midnight) calling SeriesService.refreshAllSeriesWithTmdbId(). Configured with cron expression: scheduler.cron.season-check=0 0 0 * * MON in application.properties. @EnableScheduling already enabled in MovieCatalogApplication.
+- [ ] **Notification creation logic during refresh** - Modify SeriesService.refreshSeasons() to check if series has ≥1 watched season. When new seasons detected (hasNewSeasons=true), call NotificationService.createNotification() with series details and new season count.
+- [ ] **Integration notification logic into bulk refresh** - Update SeriesService.refreshAllSeriesWithTmdbId() to track and create notifications for series with new seasons and watched content.
 
-#### Backend - External API Services
-- [ ] **Create ExternalApiService** - Implement service to fetch season information from external sources (IMDB, Kinopoisk) using WebClient. Include parsing logic for both sources and retry logic for failures. Web scraping from link URLs.
-- [ ] **Create SeasonRefreshService** - Implement service to update series with latest season data from external APIs. Detect new seasons by comparing totalAvailableSeasons. Create notifications for series with at least 1 watched season. Set hasNewSeasons flag. Handle refresh failures.
-- [ ] **Create SeasonRefreshScheduler** - Implement @Scheduled task to run weekly (Monday midnight) that triggers SeasonRefreshService for all series with link set. Configure cron expression: scheduler.cron.season-check=0 0 0 * * MON in application.properties.
-- [ ] **Manual season refresh endpoint** - POST /api/series/{id}/refresh - Implement actual external API call in SeriesService.refreshSeasons() (currently placeholder). Should fetch latest season data from link URL and update totalAvailableSeasons, seriesStatus, hasNewSeasons.
-- [ ] **Notification creation logic** - Implement logic in SeasonRefreshService to create notifications only for series where at least one season has watchStatus=WATCHED when new seasons are detected. Use NotificationService.createNotification().
+### External API Integration (Optional Enhancement)
+- [ ] **IMDB/Kinopoisk web scraping** - Optional: Implement web scraping service for IMDB/Kinopoisk as fallback when TMDB data unavailable. Currently TMDB integration is complete and sufficient.
 
-#### Configuration
-- [ ] **Configure WebClient for external APIs** - Create WebClientConfig with timeout settings, connection pooling, and retry strategies for IMDB/Kinopoisk web scraping via WebClient (non-blocking).
-- [x] **Configure scheduler settings** - Already configured via `scheduler.cron.season-check` in `src/main/resources/application.properties` and `@EnableScheduling` on `MovieCatalogApplication`.
-- [ ] **Exception handling for external API** - Create custom exceptions (ExternalApiException, SeasonRefreshException) and add handling in GlobalExceptionHandler (@RestControllerAdvice) for external API failures with appropriate error responses.
-- [ ] **Retry logic for failed refresh** - Implement retry mechanism in ExternalApiService that retries failed requests. Consider using Spring Retry or manual retry with exponential backoff for external source unavailability.
+#### Configuration & Error Handling
+- [x] **Configure WebClient for TMDB API** - TmdbWebClient configured in TmdbConfig with timeout settings and base URL. Uses Spring WebFlux WebClient (non-blocking).
+- [x] **Configure scheduler settings** - Already configured via `scheduler.cron.season-check` in `src/main/resources/application.properties`.
+- [ ] **Enable scheduled tasks** - Add @EnableScheduling annotation to main application class (MovieCatalogApplication).
+- [ ] **Exception handling for external API** - Create custom exceptions (ExternalApiException, SeasonRefreshException) and add handling in GlobalExceptionHandler (@RestControllerAdvice) for TMDB API failures with appropriate error responses.
+- [ ] **Retry logic for failed refresh** - Consider implementing retry mechanism using Spring Retry or manual retry with exponential backoff for TMDB API unavailability.
 
 ### Frontend Features
 
 #### UI Components
 - [x] **Frontend - Recommendation UI** - Implemented in `frontend/src/components/RecommendationsBlock.jsx` (rendered from `App.jsx`) with loading/error states around GET `/api/recommendations`.
-- [ ] **Frontend - Notification display** - Create UI component to display active notifications about new seasons via GET /api/notifications. Show notification list with series title, message, new season count. Allow dismissal via DELETE /api/notifications/{id}. Show badge/count of unread notifications.
+- [ ] **Frontend - Notification display** - Create UI component to display active notifications about new seasons via GET /api/notifications. Show notification list with series title, message, new season count. Allow dismissal via DELETE /api/notifications/{id}. Show badge/count of unread notifications in header.
 - [x] **Frontend - Series season management** - `frontend/src/components/SeasonList.jsx` plus `CatalogList.jsx` expand/collapse affordances already allow per-season PATCH operations and progress display.
-- [ ] **Frontend - Manual season refresh button** - Add "Refresh Seasons" button to series details to manually trigger season refresh via POST /api/series/{id}/refresh. Show loading state during refresh. Handle errors (no link, API failure).
+- [x] **Frontend - Manual season refresh button** - "Fetch Seasons" button in `SeasonList.jsx` calls POST /api/series/{id}/refresh with loading state, error handling, and TMDB link detection.
 - [x] **Frontend - Add seasons during series creation** - The series branch of `frontend/src/components/AddMovieModal.jsx` requires number of seasons and seeds the POST `/api/series` body with an initial seasons array.
 - [x] **Frontend - Bulk season operations** - Existing SeasonList controls include "Mark All Watched/Unwatched" buttons wired to PATCH `/api/series/{id}/watch-status`.
+- [x] **Frontend - Bulk refresh all series** - "Refresh All Series" button in App.jsx header calls POST /api/series/refresh-all with loading state and displays result notification.
 
 ---
 
 ## New Missing Requirements Identified (Nov 14, 2025)
 
 ### Backend Validation & Error Handling
-- [ ] **Request validation** - Add @Valid annotation to controller request bodies and implement validation constraints in DTOs (e.g., @NotBlank for title, @Min/@Max for seasonNumber, enum validation for watchStatus). Return 400 Bad Request with validation errors.
-- [ ] **Global exception handler** - Create @RestControllerAdvice class to handle common exceptions: ResourceNotFoundException (404), ValidationException (400), IllegalArgumentException (400), general Exception (500). Return standardized error response format.
-- [ ] **Series link validation** - Validate that link field contains valid IMDB or Kinopoisk URL pattern when provided. Return meaningful error if invalid URL format.
+- [ ] **Request validation** - Add @Valid annotation to controller request bodies and implement validation constraints in DTOs (e.g., @NotBlank for title, @Min/@Max for seasonNumber, enum validation for watchStatus). Return 400 Bad Request with validation errors. Note: ImageController already uses @Valid on ImageDownloadRequest.
+- [ ] **Global exception handler** - Create @RestControllerAdvice class to handle common exceptions: ResourceNotFoundException (404), ValidationException (400), IllegalArgumentException (400), general Exception (500), WebClientResponseException (TMDB API failures). Return standardized error response format.
+- [ ] **Series link validation** - Validate that link field contains valid TMDB/IMDB/Kinopoisk URL pattern when provided. Return meaningful error if invalid URL format.
 
 ### Data Consistency & Business Rules
 - [ ] **Prevent season number duplicates** - Add validation in SeriesService to prevent adding duplicate season numbers to the same series. When using PATCH to add season, check if seasonNumber already exists.
@@ -116,90 +126,124 @@ This document tracks the implementation status of features from the raw requirem
 
 ## Implementation Priority
 
-### Phase 1: External API Foundation (High Priority)
-1. Configure WebClient for external APIs with timeout and retry
-2. Create ExternalApiService with IMDB/Kinopoisk web scraping (link URLs)
-3. Implement exception handling for external API failures (custom exceptions + global handler)
-4. Create SeasonRefreshService with new season detection (compare totalAvailableSeasons)
+### Phase 1: Complete Automated Season Tracking (High Priority) ⭐
+1. Add @EnableScheduling to MovieCatalogApplication
+2. Create SeasonRefreshScheduler with @Scheduled task (weekly Monday midnight)
+3. Implement notification creation in SeriesService.refreshSeasons() (check for ≥1 watched season)
+4. Integrate notification logic into bulk refresh (refreshAllSeriesWithTmdbId)
 
-### Phase 2: Automation (High Priority)
-5. Create SeasonRefreshScheduler for weekly checks (Mondays midnight, process series with link)
-6. Implement notification creation logic (only for series with ≥1 watched season)
-7. Complete manual season refresh endpoint (POST /api/series/{id}/refresh with actual scraping)
-8. Add retry logic for failed refreshes (exponential backoff, log failures)
+### Phase 2: Frontend Notification UI (High Priority)
+5. Create NotificationPanel component with badge count in header
+6. Display notification list with series details and dismissal buttons
+7. Add real-time notification polling or refresh on catalog updates
 
-### Phase 3: Backend Validation & Stability (High Priority)
-9. Add request validation (@Valid, constraints in DTOs)
-10. Create global exception handler (@RestControllerAdvice)
-11. Add business rule validations (duplicate seasons, link validation)
-12. Implement cascade delete for series + notifications
+### Phase 3: Backend Validation & Stability (Medium Priority)
+8. Add request validation (@Valid, constraints in DTOs)
+9. Create global exception handler (@RestControllerAdvice)
+10. Add business rule validations (duplicate seasons, TMDB link validation)
+11. Implement cascade delete for series + notifications
+12. Add retry logic for TMDB API failures
 
-### Phase 4: Frontend Season Management (Medium Priority)
-13. ✅ Create SeasonList component for season tracking (SeasonList.jsx)
-14. ✅ Add season inputs to series creation form (AddMovieModal.jsx series flow)
-15. ✅ Implement bulk season operations UI (SeasonList bulk buttons)
-16. Add manual season refresh button with loading state
+### Phase 4: Testing & Documentation (Medium Priority)
+13. Write integration tests for series management workflows
+14. Write unit tests for recommendation algorithm
+15. Write tests for TMDB integration and season refresh logic
+16. Add API error documentation to Swagger annotations
+17. Document notification workflow in architecture docs
 
-### Phase 5: Frontend Notifications & Recommendations (Medium Priority)
-17. Create notification display component with badge
-18. Add notification dismissal functionality
-19. ✅ Create recommendation UI component (RecommendationsBlock)
-20. Handle recommendation edge cases (no unwatched content)
-
-### Phase 6: Testing & Documentation (Medium Priority)
-21. Write integration tests for series management
-22. Write unit tests for recommendation algorithm
-23. Add API error documentation to Swagger
-24. Add custom repository queries
+### Phase 5: Optional Enhancements (Low Priority)
+18. Add IMDB/Kinopoisk web scraping as fallback (TMDB is primary)
+19. Implement advanced retry strategies with exponential backoff
+20. Add custom repository queries (findByPriorityGreaterThan)
+21. Performance optimization and caching for TMDB responses
 
 ---
 
 ## Notes
 
-### Recent Fixes (Nov 14, 2025)
-- ✅ **Series seasons not saving** - Fixed SeriesRequest to include seasons field, updated SeriesService.addSeries() to use seasons from request
-- ✅ **Series documentation** - Created comprehensive SERIES_MANAGEMENT_GUIDE.md with API docs, patterns, troubleshooting
-- ✅ **Architecture documentation** - Added Series Management Guide section to architecture.md with complete API reference
+### Recent Updates (Nov 22, 2025)
+- ✅ **TMDB Integration Complete** - Full TmdbApiService implementation with WebClient for movie/series metadata
+- ✅ **Manual Season Refresh** - SeriesService.refreshSeasons() fully implemented with TMDB integration
+- ✅ **Bulk Refresh Endpoint** - POST /api/series/refresh-all with success/failure tracking
+- ✅ **Frontend Refresh Button** - SeasonList.jsx "Fetch Seasons" button with loading states
+- ✅ **Frontend Bulk Refresh** - App.jsx header button for refreshing all series
 
-### Architecture Gaps
-The backend architecture and core CRUD operations are solid and complete. The primary feature gap is the **entire external API integration system** for automated season tracking:
-- No web scraping implementation for IMDB/Kinopoisk (link URLs)
-- No scheduled background jobs for season checking (SeasonRefreshScheduler)
-- No external API service layer (ExternalApiService)
-- Manual refresh endpoint exists but has placeholder implementation only (SeriesService.refreshSeasons())
-- Notification creation exists but not integrated with season refresh workflow
+### Architecture Status
+The backend architecture and core CRUD operations are solid and complete. TMDB integration is fully implemented. The primary remaining gaps are:
+- **No automated scheduler** - SeasonRefreshScheduler not implemented (manual/bulk refresh works, but no weekly automation)
+- **No notification creation during refresh** - When new seasons detected, notifications not automatically created
+- **Frontend notification UI missing** - Backend notifications API ready, but no UI to display/dismiss them
+- **No validation layer** - Missing @Valid annotations and @RestControllerAdvice for error handling
 
 ### Validation & Error Handling Gaps
 Currently missing comprehensive validation and error handling:
-- No @Valid annotations on controller request bodies
+- No @Valid annotations on controller request bodies (except ImageController)
 - No global exception handler (@RestControllerAdvice)
-- No business rule validations (duplicate seasons, link format)
+- No business rule validations (duplicate seasons, TMDB link format)
 - No standardized error response format
 - Limited API error documentation in Swagger
+- No retry logic for TMDB API failures
 
-### Critical Dependencies
-- External API integration is required for:
-  - Automated season detection (comparing totalAvailableSeasons)
-  - New season notifications (only for series with ≥1 watched season)
-  - Series status tracking (COMPLETE vs ONGOING)
-  - Total available seasons count (fetched from IMDB/Kinopoisk)
+### TMDB Integration Status
+✅ **Complete:**
+- TmdbApiService with WebClient (non-blocking)
+- Movie/series metadata enrichment
+- Season count and status fetching
+- Manual refresh endpoint (POST /api/series/{id}/refresh)
+- Bulk refresh endpoint (POST /api/series/refresh-all)
+- Frontend refresh buttons (per-series and bulk)
+
+❌ **Missing:**
+- Automated weekly scheduler (@Scheduled task)
+- Notification creation when new seasons detected
+- Retry logic and circuit breaker patterns
 
 ### Frontend Status
-The frontend now includes catalog filtering, `RecommendationsBlock`, `SeasonList` management with bulk toggles, and AddMovieModal support for seeding series seasons. Remaining gaps:
-- Notification system UI (display, badge, dismissal)
-- Manual season refresh trigger in the UI
-- Surface failures/responses from the placeholder POST `/api/series/{id}/refresh`
+✅ **Complete:**
+- Catalog filtering and search
+- RecommendationsBlock with loading states
+- SeasonList with per-season tracking
+- Bulk season operations (Mark All Watched/Unwatched)
+- Manual refresh button ("Fetch Seasons")
+- Bulk refresh all series button
+- AddMovieModal with season creation
+
+❌ **Missing:**
+- Notification display component (badge + list)
+- Notification dismissal UI
 
 ### Testing Status
 Limited test coverage:
 - Basic application context test exists
-- No integration tests for series management workflows
-- No unit tests for recommendation algorithm
-- No tests for season watch status calculation
-- No tests for duplicate detection
+- SeriesServiceTest has 3 unit tests for refreshSeasons() method
+- Integration tests exist for controllers (MovieController, SeriesController, CatalogController, RecommendationController)
+- No integration tests for TMDB API integration
+- No tests for notification creation workflow
+- No tests for recommendation algorithm weighting
+- No tests for automated scheduler (when implemented)
 
 ### Repository Layer
-SeriesRepository already contains `findByHasNewSeasons`, `findBySeriesStatus`, and `findAllWithLink()`. Remaining gap:
-- `findByPriorityGreaterThan(int)` on MovieRepository for priority-based filtering.
+✅ **Complete:**
+- SeriesRepository: `findByHasNewSeasons`, `findBySeriesStatus`, `findAllWithLink()`
+- Both repositories: `findByTitleIgnoreCase()` for duplicate detection
+
+❌ **Missing:**
+- `findByPriorityGreaterThan(int)` on MovieRepository for priority-based filtering
+
+---
+
+## Next Steps Priority
+
+### Immediate Focus (Complete Automation Loop)
+1. **Create SeasonRefreshScheduler** - @Scheduled task calling bulk refresh weekly
+2. **Add notification creation** - Modify refreshSeasons() to create notifications for watched series
+3. **Frontend notification UI** - Display notifications with badge count and dismissal
+
+These 3 tasks complete the core automated season tracking feature described in requirements.
+
+### After Automation
+4. Add @Valid validation and @RestControllerAdvice error handling
+5. Write integration tests for notification workflow
+6. Add retry logic for TMDB API resilience
 
 ```
