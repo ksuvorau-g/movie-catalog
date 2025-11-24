@@ -283,7 +283,7 @@ function CatalogList({ items, deletedIds = new Set(), onDelete, onMarkAsWatched,
                     </button>
                   )}
                   <span className="detail-value priority">
-                    {item.priority === 0 ? '0' : '⭐'.repeat(item.priority)}
+                    {item.priority === 0 ? '0' : '🔥'.repeat(item.priority)}
                   </span>
                   <button 
                     className="priority-button priority-increase"

@@ -37,7 +37,7 @@ const RecommendationsBlock = ({ addedBy }) => {
 
   const getPriorityEmoji = (priority) => {
     if (!priority || priority === 0) return '';
-    return '⭐'.repeat(Math.min(priority, 5));
+    return '🔥'.repeat(Math.min(priority, 5));
   };
 
   const getCoverImageUrl = (coverImage) => {
