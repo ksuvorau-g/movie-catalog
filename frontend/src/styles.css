@@ -304,6 +304,10 @@ body {
   gap: 12px;
 }
 
+.recommendation-card-wrapper {
+  position: relative;
+}
+
 .recommendation-card {
   background: white;
   border-radius: 6px;
@@ -319,6 +323,43 @@ body {
 .recommendation-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.recommendation-edit-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #4299e1;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  visibility: hidden;
+  z-index: 10;
+}
+
+.recommendation-card-wrapper:hover .recommendation-edit-button {
+  opacity: 1;
+  visibility: visible;
+}
+
+.recommendation-edit-button:hover {
+  background: #3182ce;
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(66, 153, 225, 0.3);
+}
+
+.recommendation-edit-button:active {
+  transform: scale(0.95);
 }
 
 .recommendation-image {
@@ -499,6 +540,15 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+}
+
+.edit-button {
+  background: #4299e1;
+  color: white;
+}
+
+.edit-button:hover:not(:disabled) {
+  background: #3182ce;
 }
 
 .remove-button {
@@ -1331,6 +1381,36 @@ body {
   font-size: 13px;
   font-weight: 600;
   text-align: center;
+}
+
+/* Read-only field styles */
+.read-only-field {
+  padding: 10px 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #6b7280;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+}
+
+.description-link {
+  color: #4299e1;
+  text-decoration: none;
+  word-break: break-all;
+  transition: color 0.2s;
+}
+
+.description-link:hover {
+  color: #3182ce;
+  text-decoration: underline;
+}
+
+.season-count-label {
+  font-weight: 600;
+  color: #4a5568;
 }
 
 .add-movie-button {

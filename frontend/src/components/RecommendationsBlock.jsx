@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import EditModal from './EditModal';
 
 const API_BASE_URL = '/api';
 
@@ -7,6 +8,8 @@ const RecommendationsBlock = ({ addedBy }) => {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [itemToEdit, setItemToEdit] = useState(null);
 
   useEffect(() => {
     fetchRecommendations();
@@ -43,6 +46,23 @@ const RecommendationsBlock = ({ addedBy }) => {
       return coverImage;
     }
     return `${API_BASE_URL}/images/${coverImage}`;
+  };
+
+  const handleEdit = (e, item) => {
+    e.preventDefault(); // Prevent navigation when clicking edit button inside link
+    e.stopPropagation();
+    setItemToEdit(item);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEdit = () => {
+    setIsEditModalOpen(false);
+    setItemToEdit(null);
+  };
+
+  const handleEditSave = (updatedItem) => {
+    // Refresh recommendations after edit to reflect changes
+    fetchRecommendations();
   };
 
   if (loading) {
@@ -88,43 +108,58 @@ const RecommendationsBlock = ({ addedBy }) => {
           {recommendations.map((item) => {
             const coverImageUrl = getCoverImageUrl(item.coverImage);
             return (
-              <a
-                key={item.id}
-                href={item.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="recommendation-card"
-                title={item.comment || item.title}
-              >
-                {coverImageUrl && (
-                  <img
-                    src={coverImageUrl}
-                    alt={item.title}
-                    className="recommendation-image"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                    }}
-                  />
-                )}
-                <div className="recommendation-type">
-                  {item.contentType === 'MOVIE' ? '🎬 Movie' : '📺 Series'}
-                  {item.hasNewSeasons && (
-                    <span className="recommendation-new-season-badge">
-                      New Seasons
-                    </span>
+              <div key={item.id} className="recommendation-card-wrapper">
+                <a
+                  href={item.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="recommendation-card"
+                  title={item.comment || item.title}
+                >
+                  {coverImageUrl && (
+                    <img
+                      src={coverImageUrl}
+                      alt={item.title}
+                      className="recommendation-image"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
                   )}
-                </div>
-                <div className="recommendation-title">{item.title}</div>
-                {item.priority > 0 && (
-                  <div className="recommendation-priority">
-                    {getPriorityEmoji(item.priority)}
+                  <div className="recommendation-type">
+                    {item.contentType === 'MOVIE' ? '🎬 Movie' : '📺 Series'}
+                    {item.hasNewSeasons && (
+                      <span className="recommendation-new-season-badge">
+                        New Seasons
+                      </span>
+                    )}
                   </div>
-                )}
-              </a>
+                  <div className="recommendation-title">{item.title}</div>
+                  {item.priority > 0 && (
+                    <div className="recommendation-priority">
+                      {getPriorityEmoji(item.priority)}
+                    </div>
+                  )}
+                </a>
+                <button
+                  className="recommendation-edit-button"
+                  onClick={(e) => handleEdit(e, item)}
+                  title="Edit item"
+                >
+                  ✏️
+                </button>
+              </div>
             );
           })}
         </div>
       )}
+      
+      <EditModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEdit}
+        onSave={handleEditSave}
+        item={itemToEdit}
+      />
     </div>
   );
 };

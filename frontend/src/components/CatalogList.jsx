@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import SeasonList from './SeasonList';
+import EditModal from './EditModal';
 
 const API_BASE_URL = '/api';
 
 function CatalogList({ items, deletedIds = new Set(), onDelete, onMarkAsWatched, onMarkAsUnwatched, onNotificationsRefresh }) {
   const [localItems, setLocalItems] = useState(items);
   const [expandedSeries, setExpandedSeries] = useState(new Set());
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [itemToEdit, setItemToEdit] = useState(null);
 
   React.useEffect(() => {
     setLocalItems(items);
@@ -79,6 +82,25 @@ function CatalogList({ items, deletedIds = new Set(), onDelete, onMarkAsWatched,
     );
   };
 
+  const handleEdit = (item) => {
+    setItemToEdit(item);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEdit = () => {
+    setIsEditModalOpen(false);
+    setItemToEdit(null);
+  };
+
+  const handleEditSave = (updatedItem) => {
+    // Update the local state with the updated item
+    setLocalItems(prevItems =>
+      prevItems.map(item =>
+        item.id === updatedItem.id ? updatedItem : item
+      )
+    );
+  };
+
   // Helper function to determine if coverImage is a URL or an image ID
   const getCoverImageUrl = (coverImage) => {
     if (!coverImage) return null;
@@ -99,6 +121,14 @@ function CatalogList({ items, deletedIds = new Set(), onDelete, onMarkAsWatched,
         return (
         <div key={item.id} className={`catalog-item ${isDeleted ? 'deleted' : ''}`}>
           <div className="catalog-item-actions">
+            <button 
+              className="action-button edit-button"
+              onClick={() => handleEdit(item)}
+              title="Edit item"
+              disabled={isDeleted}
+            >
+              ✏️ Edit
+            </button>
             <button 
               className="action-button remove-button"
               onClick={() => handleDelete(item.id, item.title)}
@@ -279,6 +309,13 @@ function CatalogList({ items, deletedIds = new Set(), onDelete, onMarkAsWatched,
         </div>
       );
       })}
+      
+      <EditModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEdit}
+        onSave={handleEditSave}
+        item={itemToEdit}
+      />
     </div>
   );
 }
