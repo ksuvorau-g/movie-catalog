@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const API_BASE_URL = '/api';
 
-function SeasonList({ seriesId, seasons, onSeasonUpdate, tmdbLink }) {
+function SeasonList({ seriesId, seasons, onSeasonUpdate, tmdbLink, onNotificationsRefresh }) {
   const [updating, setUpdating] = React.useState(null);
   const [managingSeasons, setManagingSeasons] = React.useState(false);
   const [syncingSeasons, setSyncingSeasons] = React.useState(false);
@@ -117,6 +117,11 @@ function SeasonList({ seriesId, seasons, onSeasonUpdate, tmdbLink }) {
 
       if (onSeasonUpdate) {
         onSeasonUpdate(response.data);
+      }
+      
+      // Refresh notifications after season sync
+      if (onNotificationsRefresh) {
+        await onNotificationsRefresh();
       }
     } catch (error) {
       console.error('Failed to fetch seasons from TMDB:', error);

@@ -255,10 +255,6 @@ function App() {
       )}
       <header className="app-header">
         <h1>🎬 Movie Catalog</h1>
-        <NotificationPanel 
-          notifications={notifications}
-          onNotificationDismissed={fetchNotifications}
-        />
         <form className="search-form" onSubmit={handleSearch}>
           <input
             type="text"
@@ -287,6 +283,10 @@ function App() {
         >
           ➕ Add Movie
         </button>
+        <NotificationPanel 
+          notifications={notifications}
+          onNotificationDismissed={fetchNotifications}
+        />
       </header>
 
       <AddedByTabs
@@ -312,6 +312,7 @@ function App() {
             onDelete={handleDelete}
             onMarkAsWatched={handleMarkAsWatched}
             onMarkAsUnwatched={handleMarkAsUnwatched}
+            onNotificationsRefresh={fetchNotifications}
           />
         )}
       </main>

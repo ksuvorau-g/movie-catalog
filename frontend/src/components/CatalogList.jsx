@@ -4,7 +4,7 @@ import SeasonList from './SeasonList';
 
 const API_BASE_URL = '/api';
 
-function CatalogList({ items, deletedIds = new Set(), onDelete, onMarkAsWatched, onMarkAsUnwatched }) {
+function CatalogList({ items, deletedIds = new Set(), onDelete, onMarkAsWatched, onMarkAsUnwatched, onNotificationsRefresh }) {
   const [localItems, setLocalItems] = useState(items);
   const [expandedSeries, setExpandedSeries] = useState(new Set());
 
@@ -223,6 +223,7 @@ function CatalogList({ items, deletedIds = new Set(), onDelete, onMarkAsWatched,
                         seasons={item.seasons}
                         tmdbLink={item.link}
                         onSeasonUpdate={(updatedData) => handleSeasonUpdate(item.id, updatedData)}
+                        onNotificationsRefresh={onNotificationsRefresh}
                       />
                     )}
                   </div>
