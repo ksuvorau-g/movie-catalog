@@ -3,21 +3,21 @@
 ## Overview
 This document tracks the implementation status of features from the raw requirements document.
 
-**Status:** 31 of 49 features completed (Updated: Nov 22, 2025)
+**Status:** 37 of 49 features completed (Updated: Nov 24, 2025)
 
 **Summary:**
 - ✅ **Core CRUD APIs**: Complete for movies and series
 - ✅ **Catalog & Search**: Implemented with filtering and sorting
 - ✅ **Recommendations**: Weighted algorithm implemented
-- ✅ **Notifications**: Basic infrastructure complete
+- ✅ **Notifications**: Complete end-to-end (creation, storage, retrieval, dismissal)
 - ✅ **Image Management**: Download, store, retrieve system complete
-- ✅ **Series Season Management**: Create with seasons, update seasons, auto-status calculation
+- ✅ **Series Season Management**: Complete with seasons, update seasons, auto-status calculation
 - ✅ **TMDB Integration**: Complete integration for season refresh (manual + bulk)
+- ✅ **Automated Season Checking**: Complete with scheduler + notification creation
+- ✅ **Frontend Notification UI**: Complete with bell icon, badge, and dismissal
 - ⚠️ **External API Integration**: TMDB implemented, IMDB/Kinopoisk scraping not implemented
-- ❌ **Validation & Error Handling**: Minimal implementation
-- ⚠️ **Frontend Season Management**: Season tracking, bulk operations, and manual refresh button all shipped, but notification UI still missing
-- ✅ **Automated Season Checking**: Scheduler implemented (notifications integration pending)
-- ❌ **Testing**: Minimal coverage
+- ❌ **Validation & Error Handling**: Minimal implementation (only ImageController has @Valid)
+- ❌ **Testing**: Limited coverage (basic controller tests, missing notification workflow tests)
 
 ---
 
@@ -70,12 +70,12 @@ This document tracks the implementation status of features from the raw requirem
 
 ---
 
-## ❌ Pending Implementation (18/49)
+## ❌ Pending Implementation (12/49)
 
-### Automated Season Checking (Critical Gap)
-- [x] **Create SeasonRefreshScheduler** - Implemented @Scheduled task in `SeasonRefreshScheduler.java` that runs weekly (Monday midnight) calling SeriesService.refreshAllSeriesWithTmdbId(). Configured with cron expression: scheduler.cron.season-check=0 0 0 * * MON in application.properties. @EnableScheduling already enabled in MovieCatalogApplication.
-- [ ] **Notification creation logic during refresh** - Modify SeriesService.refreshSeasons() to check if series has ≥1 watched season. When new seasons detected (hasNewSeasons=true), call NotificationService.createNotification() with series details and new season count.
-- [ ] **Integration notification logic into bulk refresh** - Update SeriesService.refreshAllSeriesWithTmdbId() to track and create notifications for series with new seasons and watched content.
+### Automated Season Checking ✅ **COMPLETE**
+- [x] **Create SeasonRefreshScheduler** - Implemented @Scheduled task in `SeasonRefreshScheduler.java` that runs weekly (Monday midnight) calling SeriesService.refreshAllSeriesWithTmdbId(). Configured with cron expression: scheduler.cron.season-check=0 0 0 * * MON in application.properties. @EnableScheduling enabled in MovieCatalogApplication.
+- [x] **Notification creation logic during refresh** - Implemented in SeriesService.refreshSeasons() at line 397 - checks for watched seasons and creates notifications when new seasons detected.
+- [x] **Integration notification logic into bulk refresh** - Implemented in SeriesService.refreshAllSeriesWithTmdbId() at line 453 - creates notifications during bulk refresh operations.
 
 ### External API Integration (Optional Enhancement)
 - [ ] **IMDB/Kinopoisk web scraping** - Optional: Implement web scraping service for IMDB/Kinopoisk as fallback when TMDB data unavailable. Currently TMDB integration is complete and sufficient.
@@ -83,7 +83,7 @@ This document tracks the implementation status of features from the raw requirem
 #### Configuration & Error Handling
 - [x] **Configure WebClient for TMDB API** - TmdbWebClient configured in TmdbConfig with timeout settings and base URL. Uses Spring WebFlux WebClient (non-blocking).
 - [x] **Configure scheduler settings** - Already configured via `scheduler.cron.season-check` in `src/main/resources/application.properties`.
-- [ ] **Enable scheduled tasks** - Add @EnableScheduling annotation to main application class (MovieCatalogApplication).
+- [x] **Enable scheduled tasks** - @EnableScheduling annotation added to MovieCatalogApplication at line 17.
 - [ ] **Exception handling for external API** - Create custom exceptions (ExternalApiException, SeasonRefreshException) and add handling in GlobalExceptionHandler (@RestControllerAdvice) for TMDB API failures with appropriate error responses.
 - [ ] **Retry logic for failed refresh** - Consider implementing retry mechanism using Spring Retry or manual retry with exponential backoff for TMDB API unavailability.
 
@@ -91,7 +91,7 @@ This document tracks the implementation status of features from the raw requirem
 
 #### UI Components
 - [x] **Frontend - Recommendation UI** - Implemented in `frontend/src/components/RecommendationsBlock.jsx` (rendered from `App.jsx`) with loading/error states around GET `/api/recommendations`.
-- [ ] **Frontend - Notification display** - Create UI component to display active notifications about new seasons via GET /api/notifications. Show notification list with series title, message, new season count. Allow dismissal via DELETE /api/notifications/{id}. Show badge/count of unread notifications in header.
+- [x] **Frontend - Notification display** - NotificationPanel.jsx implemented with bell icon, badge count, dropdown panel showing series notifications with dismissal buttons. Integrated into App.jsx header with notification fetching and refresh on dismissal.
 - [x] **Frontend - Series season management** - `frontend/src/components/SeasonList.jsx` plus `CatalogList.jsx` expand/collapse affordances already allow per-season PATCH operations and progress display.
 - [x] **Frontend - Manual season refresh button** - "Fetch Seasons" button in `SeasonList.jsx` calls POST /api/series/{id}/refresh with loading state, error handling, and TMDB link detection.
 - [x] **Frontend - Add seasons during series creation** - The series branch of `frontend/src/components/AddMovieModal.jsx` requires number of seasons and seeds the POST `/api/series` body with an initial seasons array.
@@ -126,18 +126,18 @@ This document tracks the implementation status of features from the raw requirem
 
 ## Implementation Priority
 
-### Phase 1: Complete Automated Season Tracking (High Priority) ⭐
-1. Add @EnableScheduling to MovieCatalogApplication
-2. Create SeasonRefreshScheduler with @Scheduled task (weekly Monday midnight)
-3. Implement notification creation in SeriesService.refreshSeasons() (check for ≥1 watched season)
-4. Integrate notification logic into bulk refresh (refreshAllSeriesWithTmdbId)
+### ~~Phase 1: Complete Automated Season Tracking~~ ✅ **COMPLETE**
+1. ~~Add @EnableScheduling to MovieCatalogApplication~~
+2. ~~Create SeasonRefreshScheduler with @Scheduled task (weekly Monday midnight)~~
+3. ~~Implement notification creation in SeriesService.refreshSeasons() (check for ≥1 watched season)~~
+4. ~~Integrate notification logic into bulk refresh (refreshAllSeriesWithTmdbId)~~
 
-### Phase 2: Frontend Notification UI (High Priority)
-5. Create NotificationPanel component with badge count in header
-6. Display notification list with series details and dismissal buttons
-7. Add real-time notification polling or refresh on catalog updates
+### ~~Phase 2: Frontend Notification UI~~ ✅ **COMPLETE**
+5. ~~Create NotificationPanel component with badge count in header~~
+6. ~~Display notification list with series details and dismissal buttons~~
+7. ~~Add real-time notification polling or refresh on catalog updates~~
 
-### Phase 3: Backend Validation & Stability (Medium Priority)
+### Phase 3: Backend Validation & Stability (High Priority) ⭐
 8. Add request validation (@Valid, constraints in DTOs)
 9. Create global exception handler (@RestControllerAdvice)
 10. Add business rule validations (duplicate seasons, TMDB link validation)
@@ -207,10 +207,8 @@ Currently missing comprehensive validation and error handling:
 - Manual refresh button ("Fetch Seasons")
 - Bulk refresh all series button
 - AddMovieModal with season creation
-
-❌ **Missing:**
-- Notification display component (badge + list)
-- Notification dismissal UI
+- NotificationPanel component with bell icon and badge count
+- Notification list display with dismissal functionality
 
 ### Testing Status
 Limited test coverage:
@@ -234,16 +232,21 @@ Limited test coverage:
 
 ## Next Steps Priority
 
-### Immediate Focus (Complete Automation Loop)
-1. **Create SeasonRefreshScheduler** - @Scheduled task calling bulk refresh weekly
-2. **Add notification creation** - Modify refreshSeasons() to create notifications for watched series
-3. **Frontend notification UI** - Display notifications with badge count and dismissal
+### ~~Immediate Focus (Complete Automation Loop)~~ ✅ **COMPLETE**
+1. ~~Create SeasonRefreshScheduler - @Scheduled task calling bulk refresh weekly~~
+2. ~~Add notification creation - Modify refreshSeasons() to create notifications for watched series~~
+3. ~~Frontend notification UI - Display notifications with badge count and dismissal~~
 
-These 3 tasks complete the core automated season tracking feature described in requirements.
+**Status**: Automated season tracking with full notification workflow is now complete!
 
-### After Automation
-4. Add @Valid validation and @RestControllerAdvice error handling
-5. Write integration tests for notification workflow
-6. Add retry logic for TMDB API resilience
+### New Immediate Focus (Stability & Quality)
+1. **Add @Valid validation and @RestControllerAdvice error handling** - Critical for production readiness
+2. **Write integration tests for notification workflow** - Verify automated season checking end-to-end
+3. **Add retry logic for TMDB API resilience** - Handle external API failures gracefully
+
+### Top 3 Priority Tasks (Nov 24, 2025) 🎯
+1. **Create GlobalExceptionHandler** - Implement @RestControllerAdvice with standardized error responses for all endpoints
+2. **Add Request Validation** - Add @Valid annotations and validation constraints (@NotBlank, @Min, etc.) to all DTOs
+3. **Write Notification Integration Tests** - Test complete flow: refresh → detect new seasons → create notification → display in UI
 
 ```

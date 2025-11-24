@@ -31,11 +31,14 @@ class SeriesServiceTest {
     @Mock
     private TmdbApiService tmdbApiService;
 
+    @Mock
+    private NotificationService notificationService;
+
     private SeriesService seriesService;
 
     @BeforeEach
     void setUp() {
-        seriesService = new SeriesService(seriesRepository, tmdbApiService);
+        seriesService = new SeriesService(seriesRepository, tmdbApiService, notificationService);
     }
 
     @Test

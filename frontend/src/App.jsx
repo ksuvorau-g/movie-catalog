@@ -5,6 +5,7 @@ import FilterPanel from './components/FilterPanel';
 import AddMovieModal from './components/AddMovieModal';
 import AddedByTabs from './components/AddedByTabs';
 import RecommendationsBlock from './components/RecommendationsBlock';
+import NotificationPanel from './components/NotificationPanel';
 
 const API_BASE_URL = '/api';
 
@@ -22,6 +23,7 @@ function App() {
   const [deletedIds, setDeletedIds] = useState(new Set());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [notification, setNotification] = useState(null);
+  const [notifications, setNotifications] = useState([]);
 
   // Load available adders once on mount
   useEffect(() => {
@@ -38,7 +40,17 @@ function App() {
     };
     
     loadAvailableAdders();
+    fetchNotifications();
   }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/notifications`);
+      setNotifications(response.data);
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+    }
+  };
 
   useEffect(() => {
     fetchCatalog();
@@ -215,6 +227,7 @@ function App() {
       
       if (response.data.updatedCount > 0) {
         await fetchCatalog();
+        await fetchNotifications(); // Refresh notifications after season update
         showNotification(
           `Refresh completed! Processed: ${response.data.totalProcessed}, Updated: ${response.data.updatedCount}, Failed: ${response.data.failureCount}`,
           'success'
@@ -242,6 +255,10 @@ function App() {
       )}
       <header className="app-header">
         <h1>🎬 Movie Catalog</h1>
+        <NotificationPanel 
+          notifications={notifications}
+          onNotificationDismissed={fetchNotifications}
+        />
         <form className="search-form" onSubmit={handleSearch}>
           <input
             type="text"

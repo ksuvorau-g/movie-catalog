@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.moviecat.util.TmdbLinkUtil;
 import org.springframework.stereotype.Service;
 
 import com.moviecat.dto.BulkRefreshResponse;
@@ -29,9 +30,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class SeriesService {
 
-
     private final SeriesRepository seriesRepository;
     private final TmdbApiService tmdbApiService;
+    private final NotificationService notificationService;
     
     /**
      * Add a new TV series to the catalog.
@@ -63,7 +64,7 @@ public class SeriesService {
         }
         
         // Parse link: extract tmdbId if TMDB link, append to comment otherwise
-        Integer tmdbId = parseTmdbIdTv(request.getLink());
+        Integer tmdbId = TmdbLinkUtil.parseTmdbId(request.getLink(), false);
         String comment = buildComment(request.getComment(), request.getLink(), tmdbId);
         
         Series series = Series.builder()
@@ -136,7 +137,7 @@ public class SeriesService {
                 .orElseThrow(() -> new RuntimeException("Series not found with id: " + id));
         
         // Parse link: extract tmdbId if TMDB link, append to comment otherwise
-        Integer tmdbId = parseTmdbIdTv(request.getLink());
+        Integer tmdbId = TmdbLinkUtil.parseTmdbId(request.getLink(), false);
         String comment = buildComment(request.getComment(), request.getLink(), tmdbId);
         
         // Update fields
@@ -389,6 +390,13 @@ public class SeriesService {
         series.updateSeriesWatchStatus();
         Series updatedSeries = seriesRepository.save(series);
 
+        // Create notification if new seasons detected and series has watched content
+        if (newSeasonsDetected && hasWatchedSeasons(series)) {
+            int newSeasonsCount = targetSeasonCount - previousMaxSeason;
+            log.info("Creating notification for series {} with {} new season(s)", series.getTitle(), newSeasonsCount);
+            notificationService.createNotification(series.getId(), series.getTitle(), newSeasonsCount);
+        }
+
         log.info("Season refresh completed for series: {}. Added missing seasons: {}, removed extras: {}",
                 id, addedSeasons, removedSeasons);
         return toResponse(updatedSeries);
@@ -410,6 +418,7 @@ public class SeriesService {
         int successCount = 0;
         int failureCount = 0;
         int updatedCount = 0;
+        int notificationsCreated = 0;
         
         for (Series series : seriesWithTmdbId) {
             try {
@@ -419,6 +428,8 @@ public class SeriesService {
                                 .filter(Objects::nonNull)
                                 .max(Integer::compareTo)
                                 .orElse(0) : 0;
+                
+                boolean hadWatchedSeasons = hasWatchedSeasons(series);
                 
                 refreshSeasons(series.getId());
                 successCount++;
@@ -432,8 +443,16 @@ public class SeriesService {
                                     .max(Integer::compareTo)
                                     .orElse(0) : 0;
                     
-                    if (newMaxSeason != previousMaxSeason) {
+                    if (newMaxSeason > previousMaxSeason) {
                         updatedCount++;
+                        
+                        // Create notification if series has watched content
+                        if (hadWatchedSeasons) {
+                            int newSeasonsCount = newMaxSeason - previousMaxSeason;
+                            log.info("Creating notification for series {} with {} new season(s)", updatedSeries.getTitle(), newSeasonsCount);
+                            notificationService.createNotification(updatedSeries.getId(), updatedSeries.getTitle(), newSeasonsCount);
+                            notificationsCreated++;
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -442,8 +461,8 @@ public class SeriesService {
             }
         }
         
-        log.info("Bulk refresh completed. Total: {}, Success: {}, Failed: {}, Updated: {}",
-                seriesWithTmdbId.size(), successCount, failureCount, updatedCount);
+        log.info("Bulk refresh completed. Total: {}, Success: {}, Failed: {}, Updated: {}, Notifications: {}",
+                seriesWithTmdbId.size(), successCount, failureCount, updatedCount, notificationsCreated);
         
         return BulkRefreshResponse.builder()
                 .totalProcessed(seriesWithTmdbId.size())
@@ -469,6 +488,21 @@ public class SeriesService {
             return 1;
         }
         return numberOfSeasons;
+    }
+
+    /**
+     * Check if a series has at least one watched season.
+     * Used to determine if notifications should be created for new seasons.
+     * 
+     * @param series the series to check
+     * @return true if series has at least one watched season, false otherwise
+     */
+    private boolean hasWatchedSeasons(Series series) {
+        if (series.getSeasons() == null || series.getSeasons().isEmpty()) {
+            return false;
+        }
+        return series.getSeasons().stream()
+                .anyMatch(season -> season.getWatchStatus() == WatchStatus.WATCHED);
     }
 
     private SeriesStatus mapSeriesStatus(String tmdbStatus) {

@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.moviecat.util.TmdbLinkUtil;
 import org.springframework.stereotype.Service;
 
 import com.moviecat.dto.MovieRequest;
@@ -45,7 +46,7 @@ public class MovieService {
         }
 
         // Parse link: extract tmdbId if TMDB link, append to comment otherwise
-        Integer tmdbId = parseTmdbIdMovie(request.getLink());
+        Integer tmdbId = TmdbLinkUtil.parseTmdbId(request.getLink(), true);
         String comment = buildComment(request.getComment(), request.getLink(), tmdbId);
 
         Movie movie = Movie.builder()
@@ -114,7 +115,7 @@ public class MovieService {
                 .orElseThrow(() -> new RuntimeException("Movie not found with id: " + id));
 
         // Parse link: extract tmdbId if TMDB link, append to comment otherwise
-        Integer tmdbId = parseTmdbIdMovie(request.getLink());
+        Integer tmdbId = TmdbLinkUtil.parseTmdbId(request.getLink(), true);
         String comment = buildComment(request.getComment(), request.getLink(), tmdbId);
 
         // Update fields

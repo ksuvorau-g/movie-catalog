@@ -33,35 +33,12 @@ public class TmdbLinkUtil {
      * @param link URL string (may be null)
      * @return TMDB ID if found, null otherwise
      */
-    public static Integer parseTmdbIdTv(String link) {
+    public static Integer parseTmdbId(String link, boolean isMovie) {
         if (link == null || link.isEmpty()) {
             return null;
         }
 
-        Matcher matcher = TMDB_TV_ID_PATTERN.matcher(link);
-        if (matcher.find()) {
-            try {
-                return Integer.parseInt(matcher.group(1));
-            } catch (NumberFormatException ex) {
-                log.warn("Failed to parse TMDB ID from link: {}", link, ex);
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Parse TMDB ID from link if it's a TMDB URL.
-     *
-     * @param link URL string (may be null)
-     * @return TMDB ID if found, null otherwise
-     */
-    public static Integer parseTmdbIdMovie(String link) {
-        if (link == null || link.isEmpty()) {
-            return null;
-        }
-
-        Matcher matcher = TMDB_MOVIE_ID_PATTERN.matcher(link);
+        Matcher matcher = isMovie ? TMDB_MOVIE_ID_PATTERN.matcher(link) : TMDB_TV_ID_PATTERN.matcher(link);
         if (matcher.find()) {
             try {
                 return Integer.parseInt(matcher.group(1));
