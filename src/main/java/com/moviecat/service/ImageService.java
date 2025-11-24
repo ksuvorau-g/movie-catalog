@@ -2,6 +2,7 @@ package com.moviecat.service;
 
 import com.moviecat.dto.ImageDownloadRequest;
 import com.moviecat.dto.ImageResponse;
+import com.moviecat.exception.ResourceNotFoundException;
 import com.moviecat.model.Image;
 import com.moviecat.repository.ImageRepository;
 import lombok.RequiredArgsConstructor;
@@ -127,7 +128,7 @@ public class ImageService {
      */
     public ImageResponse getImageById(String id) {
         Image image = imageRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Image not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Image", id));
         return toResponse(image);
     }
     
@@ -140,7 +141,7 @@ public class ImageService {
      */
     public Resource getImageFile(String id) throws MalformedURLException {
         Image image = imageRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Image not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Image", id));
         
         Path filePath = Paths.get(imageStoragePath).resolve(image.getFilename());
         Resource resource = new UrlResource(filePath.toUri());
@@ -159,7 +160,7 @@ public class ImageService {
      */
     public void deleteImage(String id) throws IOException {
         Image image = imageRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Image not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Image", id));
         
         // Delete file from disk
         Path filePath = Paths.get(imageStoragePath).resolve(image.getFilename());

@@ -144,13 +144,13 @@ class MovieControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void shouldReturn500WhenMovieNotFound() {
-        // Note: Service throws RuntimeException for not found, resulting in 500
+        // Service throws ResourceNotFoundException, GlobalExceptionHandler returns 404
         ResponseEntity<String> response = restTemplate.getForEntity(
                 moviesUrl + "/nonexistent-id",
                 String.class
         );
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test

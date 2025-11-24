@@ -168,14 +168,13 @@ class SeriesControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void shouldReturn500WhenSeriesNotFound() {
-        // Note: Service throws RuntimeException for not found, resulting in 500
-        // This should ideally return 404, but testing actual behavior
+        // Service throws ResourceNotFoundException, GlobalExceptionHandler returns 404
         ResponseEntity<String> response = restTemplate.getForEntity(
                 seriesUrl + "/nonexistent-id",
                 String.class
         );
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
@@ -401,8 +400,8 @@ class SeriesControllerIntegrationTest extends AbstractIntegrationTest {
                 String.class
         );
 
-        // Service throws IllegalStateException, results in 500
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        // Service throws IllegalStateException, GlobalExceptionHandler returns 409 CONFLICT
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
     }
 
     @Test

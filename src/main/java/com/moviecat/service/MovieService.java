@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.moviecat.exception.ResourceNotFoundException;
 import com.moviecat.util.TmdbLinkUtil;
 import org.springframework.stereotype.Service;
 
@@ -73,13 +74,13 @@ public class MovieService {
      *
      * @param id movie ID
      * @return movie details
-     * @throws RuntimeException if movie not found
+     * @throws ResourceNotFoundException if movie not found
      */
     public MovieResponse getMovieById(String id) {
         log.info("Getting movie by id: {}", id);
 
         Movie movie = movieRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Movie not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", id));
 
         return toResponse(movie);
     }
@@ -106,13 +107,13 @@ public class MovieService {
      * @param id      movie ID
      * @param request updated movie details
      * @return updated movie
-     * @throws RuntimeException if movie not found
+     * @throws ResourceNotFoundException if movie not found
      */
     public MovieResponse updateMovie(String id, MovieRequest request) {
         log.info("Updating movie: {}", id);
 
         Movie movie = movieRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Movie not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", id));
 
         // Parse link: extract tmdbId if TMDB link, append to comment otherwise
         Integer tmdbId = TmdbLinkUtil.parseTmdbId(request.getLink(), true);
@@ -140,13 +141,13 @@ public class MovieService {
      * Delete movie from catalog.
      *
      * @param id movie ID
-     * @throws RuntimeException if movie not found
+     * @throws ResourceNotFoundException if movie not found
      */
     public void deleteMovie(String id) {
         log.info("Deleting movie: {}", id);
 
         if (!movieRepository.existsById(id)) {
-            throw new RuntimeException("Movie not found with id: " + id);
+            throw new ResourceNotFoundException("Movie", id);
         }
 
         movieRepository.deleteById(id);
@@ -159,13 +160,13 @@ public class MovieService {
      * @param id          movie ID
      * @param watchStatus new watch status
      * @return updated movie
-     * @throws RuntimeException if movie not found
+     * @throws ResourceNotFoundException if movie not found
      */
     public MovieResponse updateWatchStatus(String id, WatchStatus watchStatus) {
         log.info("Updating watch status for movie {}: {}", id, watchStatus);
 
         Movie movie = movieRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Movie not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", id));
 
         movie.setWatchStatus(watchStatus);
         Movie updatedMovie = movieRepository.save(movie);

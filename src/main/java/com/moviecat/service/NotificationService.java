@@ -1,6 +1,7 @@
 package com.moviecat.service;
 
 import com.moviecat.dto.NotificationResponse;
+import com.moviecat.exception.ResourceNotFoundException;
 import com.moviecat.model.Notification;
 import com.moviecat.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +47,7 @@ public class NotificationService {
         log.info("Dismissing notification: {}", id);
         
         Notification notification = notificationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Notification not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Notification", id));
         
         notification.setDismissed(true);
         notificationRepository.save(notification);

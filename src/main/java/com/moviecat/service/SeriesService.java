@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.moviecat.exception.ResourceNotFoundException;
 import com.moviecat.util.TmdbLinkUtil;
 import org.springframework.stereotype.Service;
 
@@ -101,7 +102,7 @@ public class SeriesService {
         log.info("Getting series by id: {}", id);
         
         Series series = seriesRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Series not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Series", id));
         
         return toResponse(series);
     }
@@ -134,7 +135,7 @@ public class SeriesService {
         log.info("Updating series: {}", id);
         
         Series series = seriesRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Series not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Series", id));
         
         // Parse link: extract tmdbId if TMDB link, append to comment otherwise
         Integer tmdbId = TmdbLinkUtil.parseTmdbId(request.getLink(), false);
@@ -176,7 +177,7 @@ public class SeriesService {
         log.info("Deleting series: {}", id);
         
         if (!seriesRepository.existsById(id)) {
-            throw new RuntimeException("Series not found with id: " + id);
+            throw new ResourceNotFoundException("Series", id);
         }
         
         seriesRepository.deleteById(id);
@@ -197,7 +198,7 @@ public class SeriesService {
         log.info("Updating watch status for series {} season {}: {}", id, seasonNumber, watchStatus);
         
         Series series = seriesRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Series not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Series", id));
         
         // Find or create season
         Season season = series.getSeasons().stream()
@@ -236,7 +237,7 @@ public class SeriesService {
         log.info("Updating watch status for entire series {}: {}", id, watchStatus);
         
         Series series = seriesRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Series not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Series", id));
         
         // Update all seasons
         series.getSeasons().forEach(season -> season.setWatchStatus(watchStatus));
@@ -259,7 +260,7 @@ public class SeriesService {
     public SeriesResponse addSeason(String id) {
         log.info("Adding new season for series {}", id);
         Series series = seriesRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Series not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Series", id));
         
         List<Season> seasons = series.getSeasons();
         if (seasons == null) {
@@ -291,7 +292,7 @@ public class SeriesService {
     public SeriesResponse removeLastSeason(String id) {
         log.info("Removing last season for series {}", id);
         Series series = seriesRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Series not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Series", id));
         List<Season> seasons = series.getSeasons();
         if (seasons == null || seasons.isEmpty()) {
             throw new IllegalStateException("Series does not have any seasons to remove");
@@ -321,7 +322,7 @@ public class SeriesService {
         log.info("Updating priority for series {}: {}", id, priority);
         
         Series series = seriesRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Series not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Series", id));
         
         series.setPriority(priority);
         Series updatedSeries = seriesRepository.save(series);
@@ -342,7 +343,7 @@ public class SeriesService {
         log.info("Manually refreshing seasons for series: {}", id);
         
         Series series = seriesRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Series not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Series", id));
         
         Integer tmdbId = resolveTmdbId(series);
         if (tmdbId == null) {

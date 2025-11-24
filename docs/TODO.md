@@ -3,7 +3,7 @@
 ## Overview
 This document tracks the implementation status of features from the raw requirements document.
 
-**Status:** 37 of 49 features completed (Updated: Nov 24, 2025)
+**Status:** 38 of 49 features completed (Updated: Nov 24, 2025)
 
 **Summary:**
 - ✅ **Core CRUD APIs**: Complete for movies and series
@@ -104,7 +104,7 @@ This document tracks the implementation status of features from the raw requirem
 
 ### Backend Validation & Error Handling
 - [ ] **Request validation** - Add @Valid annotation to controller request bodies and implement validation constraints in DTOs (e.g., @NotBlank for title, @Min/@Max for seasonNumber, enum validation for watchStatus). Return 400 Bad Request with validation errors. Note: ImageController already uses @Valid on ImageDownloadRequest.
-- [ ] **Global exception handler** - Create @RestControllerAdvice class to handle common exceptions: ResourceNotFoundException (404), ValidationException (400), IllegalArgumentException (400), general Exception (500), WebClientResponseException (TMDB API failures). Return standardized error response format.
+- [x] **Global exception handler** - Created GlobalExceptionHandler with @RestControllerAdvice handling: ResourceNotFoundException (404), MethodArgumentNotValidException (400), InvalidRequestException (400), IllegalArgumentException (400), IllegalStateException (409), HttpMessageNotReadableException (400), ExternalApiException (502), WebClientResponseException (502), general Exception (500). Created custom exceptions: ResourceNotFoundException, ExternalApiException, InvalidRequestException. Updated all service classes to use ResourceNotFoundException. Created standardized ErrorResponse DTO with validation error details.
 - [ ] **Series link validation** - Validate that link field contains valid TMDB/IMDB/Kinopoisk URL pattern when provided. Return meaningful error if invalid URL format.
 
 ### Data Consistency & Business Rules
@@ -245,7 +245,7 @@ Limited test coverage:
 3. **Add retry logic for TMDB API resilience** - Handle external API failures gracefully
 
 ### Top 3 Priority Tasks (Nov 24, 2025) 🎯
-1. **Create GlobalExceptionHandler** - Implement @RestControllerAdvice with standardized error responses for all endpoints
+1. ~~**Create GlobalExceptionHandler**~~ ✅ **COMPLETE** - Implemented @RestControllerAdvice with standardized error responses, custom exceptions (ResourceNotFoundException, ExternalApiException, InvalidRequestException), and ErrorResponse DTO. All tests passing.
 2. **Add Request Validation** - Add @Valid annotations and validation constraints (@NotBlank, @Min, etc.) to all DTOs
 3. **Write Notification Integration Tests** - Test complete flow: refresh → detect new seasons → create notification → display in UI
 
